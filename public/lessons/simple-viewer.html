@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson - Zeyadmath</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #ffb3d1 0%, #fff8dc 50%, #ffb3d1 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--primary-pink);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-3px);
+        }
+
+        .lesson-info {
+            text-align: center;
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .lesson-meta {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .xp-display {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 80px);
+            position: relative;
+        }
+
+        .lesson-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Floating controls */
+        .floating-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .time-display {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .complete-btn {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .complete-btn:hover:not(:disabled) {
+            background: var(--success-green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .complete-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Success notification */
+        .success-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            z-index: 2000;
+        }
+
+        .success-notification.show {
+            transform: translateX(0);
+        }
+
+        .success-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .success-detail {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                text-align: center;
+            }
+
+            .floating-controls {
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .complete-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="/dashboard.html" class="back-btn">
+            ← Back
+        </a>
+        <div class="lesson-info">
+            <h1 class="lesson-title" id="lessonTitle">Loading...</h1>
+            <div class="lesson-meta" id="lessonMeta"></div>
+        </div>
+        <div class="xp-display" id="xpDisplay">
+            <span id="xpAmount">0</span> XP
+        </div>
+    </div>
+
+    <!-- Lesson Content -->
+    <div class="iframe-container">
+        <iframe id="lessonFrame" class="lesson-iframe"></iframe>
+    </div>
+
+    <!-- Floating Controls -->
+    <div class="floating-controls">
+        <div class="time-display">
+            Time: <span id="timeDisplay">0:00</span>
+        </div>
+        <button class="complete-btn" id="completeBtn" onclick="completeLesson()">
+            Complete Lesson
+        </button>
+    </div>
+
+    <!-- Success Notification -->
+    <div class="success-notification" id="successNotification">
+        <div class="success-title">🎉 Lesson Complete!</div>
+        <div class="success-detail">
+            <div>Score: <span id="scoreDisplay">100</span>%</div>
+            <div>+<span id="xpEarnedDisplay">0</span> XP earned!</div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        // Get lesson ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const lessonId = urlParams.get('id');
+        const lessonPath = urlParams.get('path');
+        const lessonTitle = urlParams.get('title') || 'Lesson';
+        const lessonXP = parseInt(urlParams.get('xp') || '20');
+        const lessonType = urlParams.get('type') || 'tutorial';
+        
+        // Timer
+        let startTime = Date.now();
+        let timerInterval;
+        let lessonCompleted = false;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupLesson();
+            startTimer();
+        });
+        
+        function setupLesson() {
+            // Set lesson info
+            document.getElementById('lessonTitle').textContent = decodeURIComponent(lessonTitle);
+            document.getElementById('lessonMeta').textContent = `${lessonType} • ${lessonXP} XP Available`;
+            document.getElementById('xpAmount').textContent = lessonXP;
+            
+            // Load lesson in iframe
+            const iframe = document.getElementById('lessonFrame');
+            iframe.src = lessonPath;
+            
+            // Inject tracking when iframe loads
+            iframe.onload = () => {
+                injectTracking();
+            };
+        }
+        
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+        
+        function updateTimerDisplay() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timeDisplay').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function injectTracking() {
+            try {
+                const iframe = document.getElementById('lessonFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Add a simple completion detector
+                const script = iframeDoc.createElement('script');
+                script.textContent = `
+                    console.log('Zeyadmath tracking active');
+                    let interactions = 0;
+                    
+                    document.addEventListener('click', () => {
+                        interactions++;
+                        if (interactions > 5) {
+                            parent.postMessage({ type: 'activity-detected' }, '*');
+                        }
+                    });
+                    
+                    // Allow manual completion trigger
+                    window.completeLesson = () => {
+                        parent.postMessage({ type: 'lesson-complete', score: 100 }, '*');
+                    };
+                `;
+                iframeDoc.head.appendChild(script);
+            } catch (e) {
+                console.log('Could not inject tracking:', e);
+            }
+        }
+        
+        // Complete lesson
+        async function completeLesson() {
+            if (lessonCompleted) return;
+            
+            const btn = document.getElementById('completeBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            
+            try {
+                const response = await fetch(`/api/dynamic-lessons/${lessonId}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify({
+                        score: 100,
+                        timeSpent
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    lessonCompleted = true;
+                    showSuccess(data.data);
+                    
+                    // Update button
+                    btn.textContent = '✓ Completed';
+                    btn.style.background = '#4caf50';
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 3000);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Complete Lesson';
+                    alert('Error completing lesson: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.textContent = 'Complete Lesson';
+                alert('Network error. Please try again.');
+            }
+        }
+        
+        function showSuccess(data) {
+            const notification = document.getElementById('successNotification');
+            document.getElementById('xpEarnedDisplay').textContent = data.xpEarned;
+            notification.classList.add('show');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Listen for messages from iframe
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'lesson-complete') {
+                completeLesson();
+            }
+        });
+        
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (timerInterval) clearInterval(timerInterval);
+        });
+    </script>
+</body>
+</html>

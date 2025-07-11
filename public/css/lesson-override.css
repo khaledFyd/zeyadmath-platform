@@ -1,0 +1,172 @@
+/* Lesson Override CSS - Removes sub-window styling and creates unified layout */
+
+/* Remove container sub-window styling */
+.container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+}
+
+/* Remove body gradient and padding */
+body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100vh !important;
+}
+
+/* Simplify header - remove if duplicate */
+header:not(.lesson-nav-header) {
+    border-radius: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Remove any nested scrollable containers */
+.content-wrapper,
+.lesson-wrapper,
+.main-content {
+    height: auto !important;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+/* Ensure content flows naturally */
+.tab-content,
+.lesson-section {
+    height: auto !important;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+/* Remove floating or fixed positioned completion buttons */
+.show-completion-btn {
+    position: static !important;
+    margin: 20px auto !important;
+    display: block !important;
+    box-shadow: none !important;
+}
+
+/* Make completion section part of main flow */
+.lesson-completion-section {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    margin: 40px auto !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Ensure everything is in single column flow */
+main,
+.main,
+article {
+    display: block !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+}
+
+/* Clean navigation styling */
+.lesson-nav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: white !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* Remove any modal or overlay styling */
+.modal,
+.overlay,
+.popup {
+    position: static !important;
+    background: transparent !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Ensure smooth scrolling */
+html {
+    scroll-behavior: smooth !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    main,
+    .main,
+    article,
+    .container {
+        padding: 10px !important;
+    }
+    
+    .lesson-nav {
+        padding: 10px !important;
+    }
+    
+    header {
+        padding: 15px !important;
+    }
+}
+
+/* Remove any transforms or animations that create sub-windows */
+* {
+    transform: none !important;
+    position: static !important;
+}
+
+/* Exceptions for elements that need positioning */
+.lesson-nav,
+.tooltip,
+.dropdown-menu {
+    position: sticky !important;
+}
+
+/* Specific fixes for completion section */
+#lessonCompletionSection,
+.completion-content {
+    position: static !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Hide duplicate headers */
+body > header:nth-of-type(2),
+.container > header:nth-of-type(2) {
+    display: none !important;
+}
+
+/* Ensure tab content is visible */
+.tab-content {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.tab-content:not(.active) {
+    display: none !important;
+}
+
+/* Clean up excessive padding and margins */
+.section,
+.lesson-section,
+.content-section {
+    margin: 20px 0 !important;
+    padding: 20px !important;
+}
+
+/* Unified background */
+.lesson-content {
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}

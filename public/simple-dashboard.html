@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeyadmath - My Learning Dashboard</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        :root {
+            --primary-pink: #ff6b9d;
+            --primary-pink-dark: #e91e63;
+            --success-green: #4caf50;
+            --cream: #fff8dc;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #ffb3d1 0%, #fff8dc 50%, #ffb3d1 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary-pink);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 25px;
+            border-radius: 30px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Topic Section */
+        .topic-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .topic-title {
+            font-size: 1.8rem;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .topic-progress {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-green);
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-weight: bold;
+            color: #666;
+        }
+
+        /* Lessons Grid */
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .lesson-card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            border-color: var(--primary-pink);
+        }
+
+        .lesson-card.completed {
+            background: #e8f5e9;
+            border-color: var(--success-green);
+        }
+
+        .lesson-type {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--primary-pink);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .lesson-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .lesson-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .xp-badge {
+            background: var(--primary-pink);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .time-badge {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .completed-badge {
+            background: var(--success-green);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f0f0f0;
+            border-top-color: var(--primary-pink);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .topic-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .progress-bar {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span style="font-size: 2.5rem;">🐘</span>
+                <span>Zeyadmath</span>
+            </div>
+            <div class="user-stats">
+                <div class="stat">
+                    <div class="stat-value" id="totalXP">0</div>
+                    <div class="stat-label">Total XP</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="userLevel">1</div>
+                    <div class="stat-label">Level</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="completedCount">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" id="mainContainer">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading lessons...</p>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        // Check authentication
+        if (!API.utils.isAuthenticated()) {
+            window.location.href = '/auth-fixed.html';
+        }
+
+        // Load user data and lessons
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUserData();
+            await loadDynamicLessons();
+        });
+
+        async function loadUserData() {
+            try {
+                const response = await API.auth.getProfile();
+                const user = response.user;
+                
+                document.getElementById('totalXP').textContent = user.xp || 0;
+                document.getElementById('userLevel').textContent = user.level || 1;
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        async function loadDynamicLessons() {
+            const container = document.getElementById('mainContainer');
+            
+            try {
+                const response = await fetch('/api/dynamic-lessons', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                const { lessonsByTopic, lessons } = data.data;
+                
+                // Count completed lessons
+                const completedCount = lessons.filter(l => l.completed).length;
+                document.getElementById('completedCount').textContent = completedCount;
+                
+                // Clear loading
+                container.innerHTML = '';
+                
+                // Render lessons by topic
+                Object.entries(lessonsByTopic).forEach(([topic, topicLessons]) => {
+                    const completedInTopic = topicLessons.filter(l => l.completed).length;
+                    const progressPercent = Math.round((completedInTopic / topicLessons.length) * 100);
+                    
+                    const section = document.createElement('div');
+                    section.className = 'topic-section';
+                    section.innerHTML = `
+                        <div class="topic-header">
+                            <h2 class="topic-title">${topic.replace(/-/g, ' ')}</h2>
+                            <div class="topic-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                                </div>
+                                <span class="progress-text">${completedInTopic}/${topicLessons.length}</span>
+                            </div>
+                        </div>
+                        <div class="lessons-grid">
+                            ${topicLessons.map(lesson => createLessonCard(lesson)).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(section);
+                });
+                
+                if (lessons.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📚</div>
+                            <h2>No lessons found</h2>
+                            <p>Add HTML files to the Math_teaching_templates folder</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error loading lessons:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <h2>Error loading lessons</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function createLessonCard(lesson) {
+            const completed = lesson.completed ? 'completed' : '';
+            const typeColors = {
+                tutorial: '#ff6b9d',
+                examples: '#ff9800',
+                worksheet: '#2196f3',
+                revision: '#9c27b0'
+            };
+            
+            return `
+                <div class="lesson-card ${completed}" onclick="openLesson('${lesson.id}', '${lesson.path}', '${encodeURIComponent(lesson.title)}', ${lesson.xpReward}, '${lesson.type}')">
+                    <span class="lesson-type" style="background: ${typeColors[lesson.type] || '#ff6b9d'}">${lesson.type}</span>
+                    <div class="lesson-icon">${lesson.icon || '📚'}</div>
+                    <h3 class="lesson-title">${lesson.title}</h3>
+                    <div class="lesson-info">
+                        ${completed ? 
+                            `<span class="completed-badge">✓ Completed</span>` :
+                            `<span class="xp-badge">${lesson.xpReward} XP</span>`
+                        }
+                        <span class="time-badge">~${lesson.estimatedTime} min</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openLesson(id, path, title, xp, type) {
+            const params = new URLSearchParams({
+                id: id,
+                path: path,
+                title: title,
+                xp: xp,
+                type: type
+            });
+            
+            window.location.href = `/lessons/simple-viewer.html?${params}`;
+        }
+    </script>
+</body>
+</html>

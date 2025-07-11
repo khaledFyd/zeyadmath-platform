@@ -1,0 +1,21 @@
+services:
+  # Web service for the Node.js application
+  - type: web
+    name: zeyadmath-platform
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+    autoDeploy: true

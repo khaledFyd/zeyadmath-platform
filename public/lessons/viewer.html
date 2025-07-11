@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Viewer - Zeyadmath</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #ffb3d1 0%, #fff8dc 50%, #ffb3d1 100%);
+            min-height: 100vh;
+        }
+
+        .viewer-header {
+            background: var(--primary-pink);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .viewer-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+
+        .lesson-info {
+            text-align: center;
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .lesson-meta {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .viewer-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .lesson-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .lesson-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
+
+        .completion-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 15px;
+        }
+
+        .completion-button {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .completion-button:hover:not(:disabled) {
+            background: var(--success-green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .completion-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .xp-reward {
+            display: inline-block;
+            background: var(--primary-pink);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 60px;
+            color: var(--danger-red);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .prerequisites-warning {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            color: #e65100;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Progress tracking */
+        .progress-tracker {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-spent {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .viewer-header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .lesson-content {
+                padding: 20px;
+            }
+
+            .progress-tracker {
+                position: static;
+                margin-top: 20px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="viewer-header">
+        <div class="viewer-header-content">
+            <a href="/dashboard.html" class="back-button">
+                ← Back to Dashboard
+            </a>
+            <div class="lesson-info">
+                <h1 class="lesson-title" id="lessonTitle">Loading...</h1>
+                <p class="lesson-meta" id="lessonMeta"></p>
+            </div>
+            <div style="width: 150px;"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="viewer-container">
+        <div id="loadingContainer" class="loading-container">
+            <div class="spinner"></div>
+            <p>Loading lesson...</p>
+        </div>
+
+        <div id="errorContainer" class="error-container" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h2>Error Loading Lesson</h2>
+            <p id="errorMessage"></p>
+            <a href="/dashboard.html" class="btn btn-primary" style="margin-top: 20px;">Back to Dashboard</a>
+        </div>
+
+        <div id="lessonContainer" style="display: none;">
+            <div id="prerequisitesWarning" class="prerequisites-warning" style="display: none;">
+                <strong>⚠️ Prerequisites Required:</strong>
+                <p>You need to complete the following lessons first:</p>
+                <ul id="prerequisitesList"></ul>
+            </div>
+
+            <div class="lesson-content">
+                <div id="lessonContent"></div>
+                
+                <div class="completion-section">
+                    <h3>Ready to complete this lesson?</h3>
+                    <p>Make sure you've understood all the concepts before marking as complete.</p>
+                    <button id="completeButton" class="completion-button" onclick="completeLesson()">
+                        Complete Lesson
+                    </button>
+                    <div class="xp-reward" id="xpReward" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div class="progress-tracker">
+                <span>Time spent:</span>
+                <span class="time-spent" id="timeSpent">0:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/lesson-viewer.js"></script>
+</body>
+</html>

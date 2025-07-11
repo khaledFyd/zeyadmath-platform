@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra Balance Scale - Interactive Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #2196f3;
+            --primary-blue-dark: #1976d2;
+            --success-green: #4caf50;
+            --success-green-dark: #388e3c;
+            --danger-red: #f44336;
+            --danger-red-dark: #d32f2f;
+            --warning-orange: #ff9800;
+            --warning-orange-dark: #f57c00;
+            --purple: #9c27b0;
+            --purple-dark: #7b1fa2;
+            --gray: #9e9e9e;
+            --gray-dark: #616161;
+            --dark-gray: #455a64;
+            --light-gray: #f5f5f5;
+            --border-radius: 5px;
+            --box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .xp-display {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: clamp(16px, 3vw, 18px);
+            font-weight: 500;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .xp-display.pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            background: var(--light-gray);
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .tabs::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 2px;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: 500;
+            color: #666;
+            transition: var(--transition);
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary-blue);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-blue);
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            padding: clamp(20px, 3vw, 30px);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        /* Balance Scale Styles */
+        .balance-wrapper {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .balance-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin: 20px auto;
+            height: 300px;
+            position: relative;
+            max-width: 400px;
+        }
+
+        .base {
+            width: 120px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--dark-gray) 0%, #37474f 100%);
+            border-radius: 10px 10px 5px 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .base::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            right: 10%;
+            height: 5px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+
+        .pole {
+            width: 10px;
+            height: 140px;
+            background: linear-gradient(180deg, var(--dark-gray) 0%, #37474f 100%);
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 2px 0 4px rgba(0,0,0,0.2);
+        }
+
+        .arm {
+            width: 320px;
+            height: 6px;
+            background: linear-gradient(90deg, #37474f 0%, var(--dark-gray) 50%, #37474f 100%);
+            position: absolute;
+            bottom: 180px;
+            left: 50%;
+            transform-origin: center;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Perfect balance - always horizontal */
+        .arm.balanced {
+            transform: translateX(-50%) rotate(0deg) !important;
+        }
+
+        /* Balance animation - decorative only, always returns to horizontal */
+        .arm.animating {
+            animation: balanceAnimation 2.4s ease-in-out;
+        }
+
+        @keyframes balanceAnimation {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            20% { transform: translateX(-50%) rotate(-6deg); }
+            40% { transform: translateX(-50%) rotate(6deg); }
+            60% { transform: translateX(-50%) rotate(-3deg); }
+            80% { transform: translateX(-50%) rotate(3deg); }
+            100% { transform: translateX(-50%) rotate(0deg); }
+        }
+
+        .string {
+            width: 1px;
+            height: 50px;
+            background: #666;
+            position: absolute;
+            top: 6px;
+        }
+
+        .string.left1 { left: 45px; }
+        .string.left2 { left: 85px; }
+        .string.right1 { right: 45px; }
+        .string.right2 { right: 85px; }
+
+        .pan {
+            width: 120px;
+            height: 8px;
+            background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
+            border-radius: 4px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            position: absolute;
+            top: 56px;
+        }
+
+        .pan.left { left: 25px; }
+        .pan.right { right: 25px; }
+
+        .block-container {
+            width: 120px;
+            min-height: 40px;
+            position: absolute;
+            bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 5px;
+        }
+
+        .block-container.left { left: 25px; }
+        .block-container.right { right: 25px; }
+
+        /* Block Styles */
+        .block {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            position: relative;
+            transition: var(--transition);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            cursor: default;
+        }
+
+        .block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .block.x {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+        }
+
+        .block.positive {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+        }
+
+        .block.negative {
+            background: linear-gradient(135deg, var(--danger-red) 0%, var(--danger-red-dark) 100%);
+        }
+
+        .block.zero {
+            background: linear-gradient(135deg, var(--gray) 0%, var(--gray-dark) 100%);
+        }
+
+        .block.division {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+            width: auto;
+            padding: 0 10px;
+            font-size: 12px;
+            min-width: 50px;
+        }
+
+        .block.appearing {
+            animation: blockAppear 0.5s ease-out;
+        }
+
+        .block.removing {
+            animation: blockFade 0.5s ease-out forwards;
+        }
+
+        @keyframes blockAppear {
+            0% { 
+                opacity: 0; 
+                transform: scale(0) rotate(180deg); 
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.2) rotate(90deg); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+        }
+
+        @keyframes blockFade {
+            0% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.1) rotate(-90deg);
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0) rotate(-180deg); 
+            }
+        }
+
+        /* Balance Info Display */
+        .balance-info {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .balance-info .equation {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .balance-info .weights {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .balance-info .weight-item {
+            background: #f0f7ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .balance-info .weight-value {
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        .balance-info .status {
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--success-green);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: 500;
+            transition: var(--transition);
+            margin: 5px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            opacity: 0.6;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-dark) 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red) 0%, var(--danger-red-dark) 100%);
+        }
+
+        /* Tutorial Navigation */
+        .tutorial-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .tutorial-btn {
+            padding: 10px 20px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: 500;
+            transition: var(--transition);
+            min-height: 44px;
+            box-shadow: 0 3px 6px rgba(33,150,243,0.3);
+        }
+
+        .tutorial-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33,150,243,0.4);
+        }
+
+        .tutorial-btn:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+        }
+
+        /* Steps and Feedback */
+        .steps {
+            background: var(--light-gray);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .step {
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+            animation: slideInLeft 0.5s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideInLeft {
+            from { 
+                opacity: 0; 
+                transform: translateX(-20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        /* Grid Layouts */
+        .examples-grid, .revision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .example-card, .revision-card, .problem-card {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-card::before, .revision-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--success-green), var(--warning-orange));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .example-card:hover::before, .revision-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .example-card:hover, .revision-card:hover, .problem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Difficulty Badges */
+        .difficulty {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .difficulty.easy {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .difficulty.medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .difficulty.hard {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Operation Icons */
+        .operation-icons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .op-icon {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            background: white;
+            position: relative;
+        }
+
+        .op-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--primary-blue), var(--success-green));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .op-icon:hover {
+            border-color: transparent;
+            transform: scale(1.1);
+        }
+
+        .op-icon:hover::after {
+            opacity: 1;
+        }
+
+        .op-icon.selected {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: clamp(20px, 4vw, 24px);
+        }
+
+        .modal-content input {
+            width: 100px;
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            margin: 0 10px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(33,150,243,0.2);
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Input Styles */
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(33,150,243,0.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 24px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(255,255,255,0.3) 25%, 
+                rgba(255,255,255,0.3) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(255,255,255,0.3) 75%
+            );
+            background-size: 30px 30px;
+            animation: progress-stripes 1s linear infinite;
+        }
+
+        @keyframes progress-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 30px 0; }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Hint and Solution Boxes */
+        .hint-box, .solution-steps {
+            background: #e3f2fd;
+            border-left: 4px solid var(--primary-blue);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .hint-box.show, .solution-steps.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .solution-step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.5s ease;
+        }
+
+        .solution-step.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Step Tracker */
+        .step-tracker {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .step-tracker.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        .step-item.completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .step-item.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Feedback Messages */
+        .feedback {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid var(--success-green);
+        }
+
+        .feedback.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger-red);
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        /* Revision Cards */
+        .revision-card {
+            position: relative;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            padding-top: 25px;
+        }
+
+        .revision-card.blue { border-color: var(--primary-blue); }
+        .revision-card.green { border-color: var(--success-green); }
+        .revision-card.orange { border-color: var(--warning-orange); }
+        .revision-card.purple { border-color: var(--purple); }
+        .revision-card.gray { border-color: var(--gray); }
+        .revision-card.red { border-color: var(--danger-red); }
+
+        .revision-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: clamp(18px, 3vw, 20px);
+        }
+
+        /* Reference Table */
+        .reference-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: var(--box-shadow);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .reference-table th,
+        .reference-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .reference-table th {
+            background: var(--light-gray);
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .reference-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .reference-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
+            header {
+                padding: 15px;
+                text-align: center;
+            }
+
+            .balance-container {
+                transform: scale(0.85);
+                margin: 20px auto;
+                height: 250px;
+            }
+
+            .balance-info {
+                font-size: 14px;
+            }
+
+            .balance-info .equation {
+                font-size: 18px;
+            }
+
+            .examples-grid, .revision-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .operation-icons {
+                gap: 8px;
+            }
+
+            .op-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .tutorial-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tutorial-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .reference-table {
+                font-size: 14px;
+            }
+
+            .reference-table th,
+            .reference-table td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .balance-container {
+                transform: scale(0.7);
+                height: 220px;
+            }
+
+            .tabs {
+                justify-content: flex-start;
+            }
+
+            .tab {
+                flex: 0 0 auto;
+                padding: 12px 16px;
+            }
+
+            .example-card, .revision-card, .problem-card {
+                padding: 15px;
+            }
+
+            .arm {
+                width: 280px;
+            }
+
+            .pan {
+                width: 100px;
+            }
+
+            .block-container {
+                width: 100px;
+            }
+
+            .block {
+                width: 25px;
+                height: 25px;
+                font-size: 12px;
+            }
+
+            .progress-container {
+                height: 20px;
+            }
+
+            .balance-info .weights {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+
+            .tabs, .btn, .op-icon, header {
+                display: none;
+            }
+
+            .tab-content {
+                display: block !important;
+                page-break-inside: avoid;
+                padding: 20px 0;
+            }
+
+            .balance-container {
+                height: 200px;
+                transform: scale(0.8);
+            }
+        }
+
+        /* Accessibility */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 10px; }
+        .mt-2 { margin-top: 20px; }
+        .mb-1 { margin-bottom: 10px; }
+        .mb-2 { margin-bottom: 20px; }
+        .gap-1 { gap: 10px; }
+        .gap-2 { gap: 20px; }
+
+        /* Special Effects */
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px var(--primary-blue); }
+            to { box-shadow: 0 0 20px var(--primary-blue), 0 0 30px var(--primary-blue); }
+        }
+
+        /* Achievement Toast */
+        .achievement {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideInRight 0.5s ease, slideOutRight 0.5s ease 3s forwards;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* Balance Badge */
+        .balance-badge {
+            display: inline-block;
+            background: var(--success-green);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧮 Algebra Balance Scale <span class="balance-badge">All Equations Balanced ✓</span></h1>
+            <div class="xp-display" id="xp-display">
+                <span>⭐ XP: </span><span id="xp-value">0</span>
+            </div>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Main navigation">
+            <button class="tab active" role="tab" aria-selected="true" aria-controls="tutorial" onclick="switchTab('tutorial')">
+                📚 Tutorial
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="examples" onclick="switchTab('examples')">
+                🎯 Examples
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="worksheet" onclick="switchTab('worksheet')">
+                ✏️ Worksheet
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="revision" onclick="switchTab('revision')">
+                📋 Revision
+            </button>
+        </nav>
+
+        <!-- Tutorial Tab -->
+        <div id="tutorial" class="tab-content active" role="tabpanel" aria-labelledby="tutorial-tab">
+            <h2>Learn How to Solve Equations with the Balance Scale</h2>
+            <p class="text-center mb-2">
+                <strong>🔑 Key Principle:</strong> Whatever you do to one side, you must do to the other!
+            </p>
+            
+            <div class="tutorial-nav">
+                <button class="tutorial-btn" onclick="loadTutorial(0)">➕ Addition (x + 2 = 4)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(1)">➖ Subtraction (x - 2 = 4)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(2)">✖️ Multiplication (2x = 4)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(3)">➗ Division (x ÷ 2 = 4)</button>
+            </div>
+
+            <div id="tutorial-content">
+                <h3 id="tutorial-title" class="text-center">Loading...</h3>
+                
+                <div class="balance-wrapper">
+                    <div class="balance-container">
+                        <div class="base"></div>
+                        <div class="pole"></div>
+                        <div class="arm balanced" id="tutorial-arm">
+                            <div class="string left1"></div>
+                            <div class="string left2"></div>
+                            <div class="string right1"></div>
+                            <div class="string right2"></div>
+                            <div class="pan left"></div>
+                            <div class="pan right"></div>
+                            <div class="block-container left" id="tutorial-left"></div>
+                            <div class="block-container right" id="tutorial-right"></div>
+                        </div>
+                    </div>
+
+                    <div class="balance-info" id="tutorial-balance-info">
+                        <div class="equation" id="tutorial-equation">x + 2 = 4</div>
+                        <div class="weights">
+                            <div class="weight-item">
+                                Left side: <span class="weight-value" id="tutorial-left-weight">4</span>
+                            </div>
+                            <div class="weight-item">
+                                Right side: <span class="weight-value" id="tutorial-right-weight">4</span>
+                            </div>
+                        </div>
+                        <div class="status">✅ Perfectly Balanced!</div>
+                    </div>
+                </div>
+
+                <div class="steps" id="tutorial-steps"></div>
+
+                <div class="tutorial-nav">
+                    <button class="btn btn-primary" id="prev-step" onclick="prevStep()" disabled>
+                        ⬅️ Previous
+                    </button>
+                    <button class="btn btn-primary" id="next-step" onclick="nextStep()">
+                        Next ➡️
+                    </button>
+                    <button class="btn btn-warning" onclick="resetTutorial()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Tab -->
+        <div id="examples" class="tab-content" role="tabpanel" aria-labelledby="examples-tab">
+            <h2>Practice with Examples</h2>
+            <p class="text-center mb-2">
+                Watch step-by-step solutions for different equation types. All scales are perfectly balanced! ✨
+            </p>
+            <div class="examples-grid" id="examples-grid"></div>
+        </div>
+
+        <!-- Worksheet Tab -->
+        <div id="worksheet" class="tab-content" role="tabpanel" aria-labelledby="worksheet-tab">
+            <h2>Solve These Problems</h2>
+            <p class="text-center mb-2">
+                Click operation buttons and enter values to solve equations step by step. Earn XP for correct answers! 🏆
+            </p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+            <p class="progress-text">
+                <span id="progress-text">0 of 15 problems completed</span>
+            </p>
+            
+            <section>
+                <h3>🟢 Easy Problems (15 XP each)</h3>
+                <div id="easy-problems"></div>
+            </section>
+            
+            <section>
+                <h3>🟡 Medium Problems (20-25 XP each)</h3>
+                <div id="medium-problems"></div>
+            </section>
+            
+            <section>
+                <h3>🔴 Hard Problems (30-40 XP each)</h3>
+                <div id="hard-problems"></div>
+            </section>
+        </div>
+
+        <!-- Revision Card Tab -->
+        <div id="revision" class="tab-content" role="tabpanel" aria-labelledby="revision-tab">
+            <h2>Quick Reference Guide</h2>
+            <p class="text-center mb-2">
+                Everything you need to know about solving equations! 📖
+            </p>
+            
+            <div class="revision-grid">
+                <div class="revision-card blue">
+                    <h3>🎯 Key Concept</h3>
+                    <p><strong>The Balance Rule:</strong> Whatever you do to one side of the equation, you must do to the other side!</p>
+                    <div class="text-center mt-2 mb-2">
+                        <div style="display: inline-block; padding: 15px 30px; background: #e3f2fd; border-radius: 25px; font-size: 18px; font-weight: bold;">
+                            Left Side = Right Side
+                        </div>
+                    </div>
+                    <p>This keeps the equation balanced, just like a real scale! ⚖️</p>
+                </div>
+
+                <div class="revision-card green">
+                    <h3>🧱 Block Guide</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin: 15px 0;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="block x" style="position: static;">x</div>
+                            <span>= Unknown variable (what we're solving for)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="block positive" style="position: static;">+1</div>
+                            <span>= Positive numbers (add weight)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="block negative" style="position: static;">-1</div>
+                            <span>= Negative numbers (subtract weight)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="block zero" style="position: static;">0</div>
+                            <span>= Zero pairs (cancel out)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="block division" style="position: static;">x ÷ 2</div>
+                            <span>= Division (fractional weight)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="revision-card orange">
+                    <h3>➕➖✖️➗ Four Operations</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0;">
+                        <div style="background: #fff3e0; padding: 12px; border-radius: 8px;">
+                            <strong>➕ Addition:</strong><br>
+                            x + 3 = 7<br>
+                            <em>Subtract 3 from both sides</em>
+                        </div>
+                        <div style="background: #e8f5e9; padding: 12px; border-radius: 8px;">
+                            <strong>➖ Subtraction:</strong><br>
+                            x - 3 = 7<br>
+                            <em>Add 3 to both sides</em>
+                        </div>
+                        <div style="background: #e3f2fd; padding: 12px; border-radius: 8px;">
+                            <strong>✖️ Multiplication:</strong><br>
+                            3x = 12<br>
+                            <em>Divide both sides by 3</em>
+                        </div>
+                        <div style="background: #fce4ec; padding: 12px; border-radius: 8px;">
+                            <strong>➗ Division:</strong><br>
+                            x ÷ 3 = 4<br>
+                            <em>Multiply both sides by 3</em>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="revision-card purple">
+                    <h3>📊 Equation Types</h3>
+                    <h4>One-Step Equations:</h4>
+                    <ul style="margin: 10px 0 15px 20px; line-height: 1.8;">
+                        <li>x + 5 = 9 → x = 4</li>
+                        <li>x - 3 = 7 → x = 10</li>
+                        <li>2x = 8 → x = 4</li>
+                        <li>x ÷ 4 = 3 → x = 12</li>
+                    </ul>
+                    <h4>Two-Step Equations:</h4>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>2x + 4 = 10 → x = 3</li>
+                        <li>3x - 6 = 9 → x = 5</li>
+                        <li>x ÷ 2 + 3 = 7 → x = 8</li>
+                    </ul>
+                </div>
+
+                <div class="revision-card gray">
+                    <h3>⚖️ Zero Pairs</h3>
+                    <p>A positive and negative of the same value cancel each other out:</p>
+                    <div class="text-center mt-2 mb-2">
+                        <div style="display: inline-flex; align-items: center; gap: 15px; background: #f5f5f5; padding: 20px 30px; border-radius: 15px; font-size: 20px;">
+                            <div class="block positive" style="position: static;">+1</div>
+                            <span>+</span>
+                            <div class="block negative" style="position: static;">-1</div>
+                            <span>=</span>
+                            <div class="block zero" style="position: static;">0</div>
+                        </div>
+                    </div>
+                    <p>Use zero pairs to simplify equations! They're like magic erasers! 🪄</p>
+                </div>
+
+                <div class="revision-card red">
+                    <h3>💡 Pro Tips</h3>
+                    <ol style="margin: 15px 0 0 20px; line-height: 2;">
+                        <li><strong>Keep it balanced:</strong> Always do the same to both sides ⚖️</li>
+                        <li><strong>Isolate the variable:</strong> Get x by itself on one side 🎯</li>
+                        <li><strong>Use opposites:</strong> Addition ↔ Subtraction, Multiplication ↔ Division 🔄</li>
+                        <li><strong>Check your answer:</strong> Substitute back into the original equation ✅</li>
+                        <li><strong>Practice makes perfect:</strong> Start easy and level up! 📈</li>
+                    </ol>
+                </div>
+            </div>
+
+            <h3 class="mt-2">📊 Quick Reference Chart</h3>
+            <table class="reference-table">
+                <thead>
+                    <tr>
+                        <th>Equation Type</th>
+                        <th>Example</th>
+                        <th>How to Solve</th>
+                        <th>Solution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>x + a = b</code></td>
+                        <td>x + 5 = 12</td>
+                        <td>Subtract a from both sides</td>
+                        <td>x = 7</td>
+                    </tr>
+                    <tr>
+                        <td><code>x - a = b</code></td>
+                        <td>x - 3 = 8</td>
+                        <td>Add a to both sides</td>
+                        <td>x = 11</td>
+                    </tr>
+                    <tr>
+                        <td><code>ax = b</code></td>
+                        <td>3x = 15</td>
+                        <td>Divide both sides by a</td>
+                        <td>x = 5</td>
+                    </tr>
+                    <tr>
+                        <td><code>x ÷ a = b</code></td>
+                        <td>x ÷ 4 = 6</td>
+                        <td>Multiply both sides by a</td>
+                        <td>x = 24</td>
+                    </tr>
+                    <tr>
+                        <td><code>ax + b = c</code></td>
+                        <td>2x + 6 = 14</td>
+                        <td>1. Subtract b<br>2. Divide by a</td>
+                        <td>x = 4</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Operation Modal -->
+    <div id="operation-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <h3 id="modal-title">Apply Operation</h3>
+            <p id="modal-instruction">Enter the value to apply:</p>
+            <div>
+                <span id="modal-operation"></span>
+                <input type="number" id="modal-value" autofocus aria-label="Operation value" />
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="applyOperation()">✅ Apply</button>
+                <button class="btn btn-danger" onclick="closeModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // Global variables
+        let currentXP = 0;
+        let currentTutorial = 0;
+        let currentStep = 0;
+        let problemsCompleted = 0;
+        const totalProblems = 15;
+        let currentProblem = null;
+        const problemSteps = {};
+        const problemAttempts = {};
+
+        // All equation solutions verified for perfect balance
+        const equationSolutions = {
+            // Tutorial equations
+            'x + 2 = 4': 2,      // 2 + 2 = 4 ✓
+            'x - 2 = 4': 6,      // 6 - 2 = 4 ✓
+            '2x = 4': 2,         // 2(2) = 4 ✓
+            'x ÷ 2 = 4': 8,      // 8 ÷ 2 = 4 ✓
+            
+            // Example equations
+            'x + 5 = 9': 4,      // 4 + 5 = 9 ✓
+            'x - 3 = 8': 11,     // 11 - 3 = 8 ✓
+            '3x = 12': 4,        // 3(4) = 12 ✓
+            'x ÷ 3 = 5': 15,     // 15 ÷ 3 = 5 ✓
+            '2x + 6 = 10': 2,    // 2(2) + 6 = 10 ✓
+            'x ÷ 2 + 3 = 4': 2,  // 2 ÷ 2 + 3 = 4 ✓
+            
+            // Worksheet equations
+            'x + 3 = 8': 5,      // 5 + 3 = 8 ✓
+            'x + 7 = 12': 5,     // 5 + 7 = 12 ✓
+            'x - 4 = 6': 10,     // 10 - 4 = 6 ✓
+            'x - 1 = 9': 10,     // 10 - 1 = 9 ✓
+            'x + 2 = 11': 9,     // 9 + 2 = 11 ✓
+            '4x = 16': 4,        // 4(4) = 16 ✓
+            '5x = 20': 4,        // 5(4) = 20 ✓
+            'x ÷ 4 = 3': 12,     // 12 ÷ 4 = 3 ✓
+            'x - 8 = -3': 5,     // 5 - 8 = -3 ✓
+            'x + 9 = 4': -5,     // -5 + 9 = 4 ✓
+            '3x + 4 = 13': 3,    // 3(3) + 4 = 13 ✓
+            '2x - 6 = 8': 7,     // 2(7) - 6 = 8 ✓
+            'x ÷ 4 + 5 = 8': 12, // 12 ÷ 4 + 5 = 8 ✓
+            '5x - 3 = 17': 4,    // 5(4) - 3 = 17 ✓
+            '3x + 8 = 2': -2     // 3(-2) + 8 = 2 ✓
+        };
+
+        // Tutorial data
+        const tutorials = [
+            {
+                title: "Addition: x + 2 = 4",
+                equation: "x + 2 = 4",
+                initial: { left: ["x", "+1", "+1"], right: ["+1", "+1", "+1", "+1"] },
+                steps: [
+                    {
+                        description: "Step 1: To isolate x, we need to remove the +2 from the left side. Add -2 to both sides to keep the balance.",
+                        action: { left: ["x", "+1", "+1", "-1", "-1"], right: ["+1", "+1", "+1", "+1", "-1", "-1"] }
+                    },
+                    {
+                        description: "Step 2: The +2 and -2 on the left form a zero pair and cancel out. On the right: 4 + (-2) = 2. So x = 2!",
+                        action: { left: ["x"], right: ["+1", "+1"] }
+                    }
+                ]
+            },
+            {
+                title: "Subtraction: x - 2 = 4",
+                equation: "x - 2 = 4",
+                initial: { left: ["x", "-1", "-1"], right: ["+1", "+1", "+1", "+1"] },
+                steps: [
+                    {
+                        description: "Step 1: To isolate x, add +2 to both sides to cancel out the -2 on the left.",
+                        action: { left: ["x", "-1", "-1", "+1", "+1"], right: ["+1", "+1", "+1", "+1", "+1", "+1"] }
+                    },
+                    {
+                        description: "Step 2: The -2 and +2 on the left cancel out. On the right: 4 + 2 = 6. So x = 6!",
+                        action: { left: ["x"], right: ["+1", "+1", "+1", "+1", "+1", "+1"] }
+                    }
+                ]
+            },
+            {
+                title: "Multiplication: 2x = 4",
+                equation: "2x = 4",
+                initial: { left: ["x", "x"], right: ["+1", "+1", "+1", "+1"] },
+                steps: [
+                    {
+                        description: "Step 1: To isolate x, divide both sides by 2. This gives us x on the left and 2 on the right. So x = 2!",
+                        action: { left: ["x"], right: ["+1", "+1"] }
+                    }
+                ]
+            },
+            {
+                title: "Division: x ÷ 2 = 4",
+                equation: "x ÷ 2 = 4",
+                initial: { left: ["x ÷ 2"], right: ["+1", "+1", "+1", "+1"] },
+                steps: [
+                    {
+                        description: "Step 1: To isolate x, multiply both sides by 2. This gives us x on the left and 8 on the right. So x = 8!",
+                        action: { left: ["x"], right: ["+1", "+1", "+1", "+1", "+1", "+1", "+1", "+1"] }
+                    }
+                ]
+            }
+        ];
+
+        // Examples data
+        const examples = [
+            { 
+                equation: "x + 5 = 9", 
+                difficulty: "easy", 
+                xp: 15, 
+                answer: 4, 
+                hint: "To isolate x, subtract 5 from both sides.",
+                steps: [
+                    { operation: "-", value: 5, description: "Subtract 5 from both sides" },
+                    { result: "x = 4", description: "The answer is x = 4" }
+                ]
+            },
+            { 
+                equation: "x - 3 = 8", 
+                difficulty: "easy", 
+                xp: 15, 
+                answer: 11, 
+                hint: "To isolate x, add 3 to both sides.",
+                steps: [
+                    { operation: "+", value: 3, description: "Add 3 to both sides" },
+                    { result: "x = 11", description: "The answer is x = 11" }
+                ]
+            },
+            { 
+                equation: "3x = 12", 
+                difficulty: "medium", 
+                xp: 20, 
+                answer: 4, 
+                hint: "To isolate x, divide both sides by 3.",
+                steps: [
+                    { operation: "÷", value: 3, description: "Divide both sides by 3" },
+                    { result: "x = 4", description: "The answer is x = 4" }
+                ]
+            },
+            { 
+                equation: "x ÷ 3 = 5", 
+                difficulty: "medium", 
+                xp: 20, 
+                answer: 15, 
+                hint: "To isolate x, multiply both sides by 3.",
+                steps: [
+                    { operation: "×", value: 3, description: "Multiply both sides by 3" },
+                    { result: "x = 15", description: "The answer is x = 15" }
+                ]
+            },
+            { 
+                equation: "2x + 6 = 10", 
+                difficulty: "hard", 
+                xp: 30, 
+                answer: 2, 
+                hint: "First subtract 6 from both sides, then divide by 2.",
+                steps: [
+                    { operation: "-", value: 6, description: "Subtract 6 from both sides to get 2x = 4" },
+                    { operation: "÷", value: 2, description: "Divide both sides by 2" },
+                    { result: "x = 2", description: "The answer is x = 2" }
+                ]
+            },
+            { 
+                equation: "x ÷ 2 + 3 = 4", 
+                difficulty: "hard", 
+                xp: 30, 
+                answer: 2, 
+                hint: "First subtract 3 from both sides, then multiply by 2.",
+                steps: [
+                    { operation: "-", value: 3, description: "Subtract 3 from both sides to get x ÷ 2 = 1" },
+                    { operation: "×", value: 2, description: "Multiply both sides by 2" },
+                    { result: "x = 2", description: "The answer is x = 2" }
+                ]
+            }
+        ];
+
+        // Worksheet problems
+        const worksheetProblems = {
+            easy: [
+                { equation: "x + 3 = 8", answer: 5, xp: 15 },
+                { equation: "x + 7 = 12", answer: 5, xp: 15 },
+                { equation: "x - 4 = 6", answer: 10, xp: 15 },
+                { equation: "x - 1 = 9", answer: 10, xp: 15 },
+                { equation: "x + 2 = 11", answer: 9, xp: 15 }
+            ],
+            medium: [
+                { equation: "4x = 16", answer: 4, xp: 20 },
+                { equation: "5x = 20", answer: 4, xp: 20 },
+                { equation: "x ÷ 4 = 3", answer: 12, xp: 25 },
+                { equation: "x - 8 = -3", answer: 5, xp: 25 },
+                { equation: "x + 9 = 4", answer: -5, xp: 25 }
+            ],
+            hard: [
+                { equation: "3x + 4 = 13", answer: 3, xp: 30 },
+                { equation: "2x - 6 = 8", answer: 7, xp: 35 },
+                { equation: "x ÷ 4 + 5 = 8", answer: 12, xp: 35 },
+                { equation: "5x - 3 = 17", answer: 4, xp: 40 },
+                { equation: "3x + 8 = 2", answer: -2, xp: 40 }
+            ]
+        };
+
+        // Calculate the actual numerical value of an equation side
+        function calculateSideValue(blocks, xValue) {
+            let value = 0;
+            blocks.forEach(block => {
+                if (block === 'x') {
+                    value += xValue;
+                } else if (block.includes('x ÷')) {
+                    const divisor = parseInt(block.split('÷')[1]);
+                    value += xValue / divisor;
+                } else if (block.startsWith('+')) {
+                    value += 1;
+                } else if (block.startsWith('-')) {
+                    value -= 1;
+                }
+            });
+            return value;
+        }
+
+        // Parse equation string to blocks
+        function parseEquationToBlocks(side) {
+            const blocks = [];
+            side = side.replace(/\s/g, '');
+            
+            // Handle division first
+            if (side.includes('÷')) {
+                const divMatch = side.match(/x÷(\d+)/);
+                if (divMatch) {
+                    blocks.push(`x ÷ ${divMatch[1]}`);
+                    
+                    // Check for addition/subtraction after division
+                    const addMatch = side.match(/x÷\d+\+(\d+)/);
+                    const subMatch = side.match(/x÷\d+-(\d+)/);
+                    
+                    if (addMatch) {
+                        const num = parseInt(addMatch[1]);
+                        for (let i = 0; i < num; i++) {
+                            blocks.push('+1');
+                        }
+                    } else if (subMatch) {
+                        const num = parseInt(subMatch[1]);
+                        for (let i = 0; i < num; i++) {
+                            blocks.push('-1');
+                        }
+                    }
+                }
+            } else if (side.includes('x')) {
+                // Handle coefficient of x
+                const xMatch = side.match(/(-?\d*)x/);
+                if (xMatch) {
+                    const coefficient = xMatch[1] === '-' ? -1 : (xMatch[1] ? parseInt(xMatch[1]) : 1);
+                    const absCoefficient = Math.abs(coefficient);
+                    for (let i = 0; i < absCoefficient; i++) {
+                        blocks.push('x');
+                    }
+                }
+                
+                // Handle addition after x
+                const addMatch = side.match(/x\+(\d+)/);
+                if (addMatch) {
+                    const num = parseInt(addMatch[1]);
+                    for (let i = 0; i < num; i++) {
+                        blocks.push('+1');
+                    }
+                }
+                
+                // Handle subtraction after x
+                const subMatch = side.match(/x-(\d+)/);
+                if (subMatch) {
+                    const num = parseInt(subMatch[1]);
+                    for (let i = 0; i < num; i++) {
+                        blocks.push('-1');
+                    }
+                }
+            } else {
+                // Just a number
+                const num = parseInt(side);
+                if (!isNaN(num)) {
+                    const absNum = Math.abs(num);
+                    for (let i = 0; i < absNum; i++) {
+                        blocks.push(num > 0 ? '+1' : '-1');
+                    }
+                }
+            }
+            
+            return blocks;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                loadTutorial(0);
+                generateExamples();
+                generateWorksheetProblems();
+                updateProgressDisplay();
+            }, 100);
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const tabIndex = ['tutorial', 'examples', 'worksheet', 'revision'].indexOf(tabName);
+            if (tabIndex !== -1) {
+                tabs[tabIndex].classList.add('active');
+                tabs[tabIndex].setAttribute('aria-selected', 'true');
+                document.getElementById(tabName).classList.add('active');
+            }
+        }
+
+        // Tutorial functions
+        function loadTutorial(index) {
+            currentTutorial = index;
+            currentStep = 0;
+            const tutorial = tutorials[index];
+            
+            document.getElementById('tutorial-title').textContent = tutorial.title;
+            updateBlocks('tutorial-left', tutorial.initial.left);
+            updateBlocks('tutorial-right', tutorial.initial.right);
+            updateTutorialSteps();
+            updateNavigationButtons();
+            
+            // Update balance info
+            updateBalanceInfo('tutorial', tutorial.equation, tutorial.initial.left, tutorial.initial.right);
+            
+            // Animate the balance
+            animateBalance('tutorial-arm');
+        }
+
+        function updateBalanceInfo(prefix, equation, leftBlocks, rightBlocks) {
+            const xValue = equationSolutions[equation];
+            const leftValue = calculateSideValue(leftBlocks, xValue);
+            const rightValue = calculateSideValue(rightBlocks, xValue);
+            
+            document.getElementById(`${prefix}-equation`).textContent = equation;
+            document.getElementById(`${prefix}-left-weight`).textContent = leftValue;
+            document.getElementById(`${prefix}-right-weight`).textContent = rightValue;
+        }
+
+        function updateTutorialSteps() {
+            const tutorial = tutorials[currentTutorial];
+            const stepsContainer = document.getElementById('tutorial-steps');
+            stepsContainer.innerHTML = '';
+            
+            for (let i = 0; i <= Math.min(currentStep, tutorial.steps.length - 1); i++) {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step';
+                stepDiv.innerHTML = `<strong>${tutorial.steps[i].description}</strong>`;
+                stepsContainer.appendChild(stepDiv);
+            }
+            
+            // Update blocks based on current step
+            if (currentStep > 0 && currentStep <= tutorial.steps.length) {
+                const stepData = tutorial.steps[currentStep - 1].action;
+                updateBlocks('tutorial-left', stepData.left);
+                updateBlocks('tutorial-right', stepData.right);
+                
+                // Update balance info
+                updateBalanceInfo('tutorial', tutorial.equation, stepData.left, stepData.right);
+                
+                // Animate balance
+                animateBalance('tutorial-arm');
+            }
+        }
+
+        function nextStep() {
+            const tutorial = tutorials[currentTutorial];
+            if (currentStep < tutorial.steps.length) {
+                currentStep++;
+                updateTutorialSteps();
+                updateNavigationButtons();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                if (currentStep === 0) {
+                    loadTutorial(currentTutorial);
+                } else {
+                    updateTutorialSteps();
+                    updateNavigationButtons();
+                }
+            }
+        }
+
+        function resetTutorial() {
+            loadTutorial(currentTutorial);
+        }
+
+        function updateNavigationButtons() {
+            const tutorial = tutorials[currentTutorial];
+            document.getElementById('prev-step').disabled = currentStep === 0;
+            document.getElementById('next-step').disabled = currentStep >= tutorial.steps.length;
+        }
+
+        // Block management
+        function updateBlocks(containerId, blocks) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Container with ID ${containerId} not found`);
+                return;
+            }
+            
+            // Clear existing blocks with animation
+            const existingBlocks = container.querySelectorAll('.block');
+            existingBlocks.forEach(block => {
+                block.classList.add('removing');
+            });
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+                
+                blocks.forEach((block, index) => {
+                    const blockDiv = document.createElement('div');
+                    blockDiv.className = 'block appearing';
+                    blockDiv.textContent = block;
+                    
+                    if (block === 'x') {
+                        blockDiv.classList.add('x');
+                    } else if (block.includes('÷')) {
+                        blockDiv.classList.add('division');
+                    } else if (block.startsWith('+')) {
+                        blockDiv.classList.add('positive');
+                    } else if (block.startsWith('-')) {
+                        blockDiv.classList.add('negative');
+                    } else if (block === '0') {
+                        blockDiv.classList.add('zero');
+                    }
+                    
+                    container.appendChild(blockDiv);
+                    
+                    // Remove appearing class after animation
+                    setTimeout(() => {
+                        blockDiv.classList.remove('appearing');
+                    }, 500);
+                });
+            }, existingBlocks.length > 0 ? 300 : 0);
+        }
+
+        // Animate balance - always returns to horizontal
+        function animateBalance(armId) {
+            const arm = document.getElementById(armId);
+            if (!arm) return;
+            
+            // Add animation class
+            arm.classList.add('animating');
+            
+            // Remove animation class after completion
+            setTimeout(() => {
+                arm.classList.remove('animating');
+                arm.classList.add('balanced');
+            }, 2400);
+        }
+
+        // Examples generation
+        function generateExamples() {
+            const container = document.getElementById('examples-grid');
+            container.innerHTML = '';
+            
+            examples.forEach((example, index) => {
+                const card = document.createElement('div');
+                card.className = 'example-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>${example.equation}</h3>
+                        <span class="difficulty ${example.difficulty}">${example.difficulty.charAt(0).toUpperCase() + example.difficulty.slice(1)} (${example.xp} XP)</span>
+                    </div>
+                    <div class="balance-wrapper">
+                        <div class="balance-container" style="height: 200px; transform: scale(0.7);">
+                            <div class="base"></div>
+                            <div class="pole"></div>
+                            <div class="arm balanced" id="example-arm-${index}">
+                                <div class="string left1"></div>
+                                <div class="string left2"></div>
+                                <div class="string right1"></div>
+                                <div class="string right2"></div>
+                                <div class="pan left"></div>
+                                <div class="pan right"></div>
+                                <div class="block-container left" id="example-left-${index}"></div>
+                                <div class="block-container right" id="example-right-${index}"></div>
+                            </div>
+                        </div>
+                        <div class="balance-info">
+                            <small>When x = ${example.answer}, both sides equal <span class="weight-value">${calculateEquationValue(example.equation, example.answer)}</span></small>
+                        </div>
+                    </div>
+                    <div class="hint-box" id="hint-${index}">
+                        <strong>💡 Hint:</strong> ${example.hint}
+                    </div>
+                    <div class="solution-steps" id="solution-${index}"></div>
+                    <div class="feedback" id="feedback-${index}"></div>
+                    <div class="text-center mt-1">
+                        <button class="btn btn-primary" onclick="showHint(${index})">💡 Hint</button>
+                        <button class="btn btn-success" onclick="showAnimatedSolution(${index})">🎯 Show Solution</button>
+                        <button class="btn btn-warning" onclick="resetExample(${index})">🔄 Reset</button>
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                // Set up initial blocks
+                setTimeout(() => {
+                    setupExampleBlocks(index, example.equation);
+                    animateBalance(`example-arm-${index}`);
+                }, 100 * index);
+            });
+        }
+
+        function calculateEquationValue(equation, xValue) {
+            const parts = equation.split('=');
+            const leftBlocks = parseEquationToBlocks(parts[0].trim());
+            return calculateSideValue(leftBlocks, xValue);
+        }
+
+        function setupExampleBlocks(index, equation) {
+            const parts = equation.split('=');
+            const leftBlocks = parseEquationToBlocks(parts[0].trim());
+            const rightBlocks = parseEquationToBlocks(parts[1].trim());
+            
+            updateBlocks(`example-left-${index}`, leftBlocks);
+            updateBlocks(`example-right-${index}`, rightBlocks);
+        }
+
+        function showHint(index) {
+            const hintBox = document.getElementById(`hint-${index}`);
+            hintBox.classList.add('show');
+        }
+
+        function showAnimatedSolution(index) {
+            const example = examples[index];
+            const solutionDiv = document.getElementById(`solution-${index}`);
+            const button = event.target;
+            
+            button.disabled = true;
+            solutionDiv.classList.add('show');
+            solutionDiv.innerHTML = '<h4>🎯 Step-by-Step Solution:</h4>';
+            
+            let stepIndex = 0;
+            
+            function showNextStep() {
+                if (stepIndex < example.steps.length) {
+                    const step = example.steps[stepIndex];
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'solution-step';
+                    
+                    if (step.operation) {
+                        stepDiv.innerHTML = `
+                            <strong>Step ${stepIndex + 1}:</strong> ${step.description}<br>
+                            <span style="color: var(--primary-blue); font-weight: bold;">
+                                ${step.operation === '+' ? '➕' : step.operation === '-' ? '➖' : step.operation === '×' ? '✖️' : '➗'}
+                                ${step.operation}${step.value} to both sides
+                            </span>
+                        `;
+                    } else if (step.result) {
+                        stepDiv.innerHTML = `
+                            <strong>✅ Final Result:</strong> ${step.description}<br>
+                            <span style="color: var(--success-green); font-size: 20px; font-weight: bold;">
+                                ${step.result}
+                            </span>
+                        `;
+                    }
+                    
+                    solutionDiv.appendChild(stepDiv);
+                    setTimeout(() => stepDiv.classList.add('show'), 50);
+                    
+                    stepIndex++;
+                    setTimeout(showNextStep, 1500);
+                } else {
+                    button.disabled = false;
+                }
+            }
+            
+            showNextStep();
+        }
+
+        function resetExample(index) {
+            const hintBox = document.getElementById(`hint-${index}`);
+            const solutionDiv = document.getElementById(`solution-${index}`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            
+            hintBox.classList.remove('show');
+            solutionDiv.classList.remove('show');
+            solutionDiv.innerHTML = '';
+            feedback.classList.remove('show');
+            
+            // Re-setup blocks
+            const example = examples[index];
+            setupExampleBlocks(index, example.equation);
+            
+            // Animate reset
+            setTimeout(() => {
+                animateBalance(`example-arm-${index}`);
+            }, 100);
+        }
+
+        // Worksheet generation
+        function generateWorksheetProblems() {
+            generateProblemSection('easy', worksheetProblems.easy);
+            generateProblemSection('medium', worksheetProblems.medium);
+            generateProblemSection('hard', worksheetProblems.hard);
+        }
+
+        function generateProblemSection(difficulty, problems) {
+            const container = document.getElementById(`${difficulty}-problems`);
+            container.innerHTML = '';
+            
+            problems.forEach((problem, index) => {
+                const problemDiv = document.createElement('div');
+                problemDiv.className = 'problem-card';
+                
+                // Calculate the balance value
+                const xValue = problem.answer;
+                const parts = problem.equation.split('=');
+                const leftBlocks = parseEquationToBlocks(parts[0].trim());
+                const rightBlocks = parseEquationToBlocks(parts[1].trim());
+                const balanceValue = calculateSideValue(leftBlocks, xValue);
+                
+                problemDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4>Problem ${index + 1}: ${problem.equation}</h4>
+                        <span class="difficulty ${difficulty}">${problem.xp} XP</span>
+                    </div>
+                    <div class="balance-wrapper">
+                        <div class="balance-container" style="height: 180px; transform: scale(0.6);">
+                            <div class="base"></div>
+                            <div class="pole"></div>
+                            <div class="arm balanced" id="problem-arm-${difficulty}-${index}">
+                                <div class="string left1"></div>
+                                <div class="string left2"></div>
+                                <div class="string right1"></div>
+                                <div class="string right2"></div>
+                                <div class="pan left"></div>
+                                <div class="pan right"></div>
+                                <div class="block-container left" id="problem-left-${difficulty}-${index}"></div>
+                                <div class="block-container right" id="problem-right-${difficulty}-${index}"></div>
+                            </div>
+                        </div>
+                        <div class="balance-info">
+                            <small>Find the value of x that makes both sides equal</small>
+                        </div>
+                    </div>
+                    <div class="operation-icons">
+                        <div class="op-icon" onclick="selectOperation('${difficulty}', ${index}, '+', this)">+</div>
+                        <div class="op-icon" onclick="selectOperation('${difficulty}', ${index}, '-', this)">−</div>
+                        <div class="op-icon" onclick="selectOperation('${difficulty}', ${index}, '×', this)">×</div>
+                        <div class="op-icon" onclick="selectOperation('${difficulty}', ${index}, '÷', this)">÷</div>
+                    </div>
+                    <div class="step-tracker" id="steps-${difficulty}-${index}"></div>
+                    <div class="text-center mt-2">
+                        <label for="answer-${difficulty}-${index}">Your answer: x = </label>
+                        <input type="number" id="answer-${difficulty}-${index}" aria-label="Your answer" />
+                        <button class="btn btn-primary" onclick="checkAnswer('${difficulty}', ${index})">✅ Check</button>
+                    </div>
+                    <div class="hint-box" id="problem-hint-${difficulty}-${index}">
+                        <strong>💡 Hint:</strong> Think about what operation would isolate x. Remember to do the opposite operation!
+                    </div>
+                    <div class="feedback" id="problem-feedback-${difficulty}-${index}"></div>
+                    <div class="text-center">
+                        <button class="btn btn-warning" onclick="showProblemHint('${difficulty}', ${index})">💡 Hint</button>
+                        <span style="margin-left: 20px;">Attempts: <span id="attempts-${difficulty}-${index}">0</span></span>
+                    </div>
+                `;
+                container.appendChild(problemDiv);
+                
+                // Set up blocks
+                setTimeout(() => {
+                    updateBlocks(`problem-left-${difficulty}-${index}`, leftBlocks);
+                    updateBlocks(`problem-right-${difficulty}-${index}`, rightBlocks);
+                    
+                    // Animate balance
+                    setTimeout(() => {
+                        animateBalance(`problem-arm-${difficulty}-${index}`);
+                    }, 100 * index);
+                }, 0);
+            });
+        }
+
+        function selectOperation(difficulty, index, operation, element) {
+            const problemDiv = element.closest('.problem-card');
+            const icons = problemDiv.querySelectorAll('.op-icon');
+            icons.forEach(icon => icon.classList.remove('selected'));
+            
+            element.classList.add('selected');
+            
+            currentProblem = {
+                difficulty: difficulty,
+                index: index,
+                operation: operation,
+                equation: worksheetProblems[difficulty][index].equation
+            };
+            
+            showOperationModal(operation);
+        }
+
+        function showOperationModal(operation) {
+            const modal = document.getElementById('operation-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalInstruction = document.getElementById('modal-instruction');
+            const modalOperation = document.getElementById('modal-operation');
+            const modalValue = document.getElementById('modal-value');
+            
+            let instruction = '';
+            let operationText = '';
+            let emoji = '';
+            
+            switch(operation) {
+                case '+':
+                    instruction = 'What number do you want to add to both sides?';
+                    operationText = 'Add';
+                    emoji = '➕';
+                    break;
+                case '-':
+                    instruction = 'What number do you want to subtract from both sides?';
+                    operationText = 'Subtract';
+                    emoji = '➖';
+                    break;
+                case '×':
+                    instruction = 'What number do you want to multiply both sides by?';
+                    operationText = 'Multiply by';
+                    emoji = '✖️';
+                    break;
+                case '÷':
+                    instruction = 'What number do you want to divide both sides by?';
+                    operationText = 'Divide by';
+                    emoji = '➗';
+                    break;
+            }
+            
+            modalTitle.innerHTML = `${emoji} Apply ${operationText}`;
+            modalInstruction.textContent = instruction;
+            modalOperation.textContent = operationText + ':';
+            modalValue.value = '';
+            modalValue.focus();
+            
+            modal.classList.add('show');
+            
+            // Handle enter key
+            modalValue.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    applyOperation();
+                }
+            };
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('operation-modal');
+            modal.classList.remove('show');
+        }
+
+        function applyOperation() {
+            const modalValue = document.getElementById('modal-value');
+            const value = parseInt(modalValue.value);
+            
+            if (!value || value === 0) {
+                alert('Please enter a valid number (not zero)!');
+                return;
+            }
+            
+            closeModal();
+            
+            if (currentProblem) {
+                const trackerId = `steps-${currentProblem.difficulty}-${currentProblem.index}`;
+                const tracker = document.getElementById(trackerId);
+                tracker.classList.add('show');
+                
+                const key = `${currentProblem.difficulty}-${currentProblem.index}`;
+                if (!problemSteps[key]) {
+                    problemSteps[key] = [];
+                }
+                
+                const step = {
+                    operation: currentProblem.operation,
+                    value: value,
+                    equation: currentProblem.equation
+                };
+                problemSteps[key].push(step);
+                
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step-item';
+                const emoji = currentProblem.operation === '+' ? '➕' : 
+                             currentProblem.operation === '-' ? '➖' : 
+                             currentProblem.operation === '×' ? '✖️' : '➗';
+                stepDiv.innerHTML = `
+                    <span>Step ${problemSteps[key].length}: ${emoji} ${currentProblem.operation}${value} to both sides</span>
+                `;
+                tracker.appendChild(stepDiv);
+                
+                verifyStep(currentProblem, value, stepDiv);
+            }
+        }
+
+        function verifyStep(problem, value, stepDiv) {
+            const originalEquation = worksheetProblems[problem.difficulty][problem.index].equation;
+            const key = `${problem.difficulty}-${problem.index}`;
+            
+            // For hard problems, we need to handle multi-step equations
+            if (problem.difficulty === 'hard') {
+                const steps = problemSteps[key] || [];
+                let currentEquation = originalEquation;
+                
+                // Apply all previous steps to get current equation state
+                for (let i = 0; i < steps.length - 1; i++) {
+                    currentEquation = applyStepToEquation(currentEquation, steps[i].operation, steps[i].value);
+                }
+                
+                // Verify the current step
+                let isCorrect = false;
+                let feedback = '';
+                let nextEquation = '';
+                
+                // Parse current equation
+                const hasAddition = currentEquation.includes('+') && currentEquation.indexOf('+') > currentEquation.indexOf('x');
+                const hasSubtraction = currentEquation.includes('-') && currentEquation.indexOf('-') > currentEquation.indexOf('x');
+                const hasMultiplication = currentEquation.match(/\d+x/);
+                const hasDivision = currentEquation.includes('÷');
+                
+                if (hasAddition && problem.operation === '-') {
+                    const addValue = parseInt(currentEquation.match(/\+\s*(\d+)/)[1]);
+                    isCorrect = value === addValue;
+                    if (!isCorrect) feedback = `Try subtracting ${addValue}`;
+                    else nextEquation = applyStepToEquation(currentEquation, '-', value);
+                } else if (hasSubtraction && problem.operation === '+') {
+                    const subValue = parseInt(currentEquation.match(/-\s*(\d+)/)[1]);
+                    isCorrect = value === subValue;
+                    if (!isCorrect) feedback = `Try adding ${subValue}`;
+                    else nextEquation = applyStepToEquation(currentEquation, '+', value);
+                } else if (hasMultiplication && problem.operation === '÷') {
+                    const coefficient = parseInt(currentEquation.match(/(\d+)x/)[1]);
+                    isCorrect = value === coefficient;
+                    if (!isCorrect) feedback = `Try dividing by ${coefficient}`;
+                    else nextEquation = applyStepToEquation(currentEquation, '÷', value);
+                } else if (hasDivision && problem.operation === '×') {
+                    const divisor = parseInt(currentEquation.match(/÷\s*(\d+)/)[1]);
+                    isCorrect = value === divisor;
+                    if (!isCorrect) feedback = `Try multiplying by ${divisor}`;
+                    else nextEquation = applyStepToEquation(currentEquation, '×', value);
+                } else if (currentEquation.match(/^x\s*=\s*-?\d+$/)) {
+                    isCorrect = false;
+                    feedback = 'This equation is already solved!';
+                } else {
+                    isCorrect = false;
+                    feedback = 'Try a different operation';
+                }
+                
+                if (isCorrect) {
+                    stepDiv.classList.add('completed');
+                    stepDiv.innerHTML += `<span style="color: var(--success-green); margin-left: 10px;">✓</span>`;
+                    if (nextEquation) {
+                        stepDiv.innerHTML += `<br><small style="color: #666;">Result: ${nextEquation}</small>`;
+                    }
+                } else {
+                    stepDiv.classList.add('error');
+                    stepDiv.innerHTML += `<span style="color: var(--danger-red); margin-left: 10px;">✗ ${feedback}</span>`;
+                }
+                
+            } else {
+                // For easy and medium problems, use the original logic
+                const equation = originalEquation;
+                
+                let isCorrect = false;
+                let feedback = '';
+                
+                const hasAddition = equation.includes('+') && equation.indexOf('+') > equation.indexOf('x');
+                const hasSubtraction = equation.includes('-') && equation.indexOf('-') > equation.indexOf('x');
+                const hasMultiplication = equation.match(/\d+x/);
+                const hasDivision = equation.includes('÷');
+                
+                if (hasAddition && problem.operation === '-') {
+                    const addValue = parseInt(equation.match(/\+\s*(\d+)/)[1]);
+                    isCorrect = value === addValue;
+                    if (!isCorrect) feedback = `Try subtracting ${addValue}`;
+                } else if (hasSubtraction && problem.operation === '+') {
+                    const subValue = parseInt(equation.match(/-\s*(\d+)/)[1]);
+                    isCorrect = value === subValue;
+                    if (!isCorrect) feedback = `Try adding ${subValue}`;
+                } else if (hasMultiplication && problem.operation === '÷') {
+                    const coefficient = parseInt(equation.match(/(\d+)x/)[1]);
+                    isCorrect = value === coefficient;
+                    if (!isCorrect) feedback = `Try dividing by ${coefficient}`;
+                } else if (hasDivision && problem.operation === '×') {
+                    const divisor = parseInt(equation.match(/÷\s*(\d+)/)[1]);
+                    isCorrect = value === divisor;
+                    if (!isCorrect) feedback = `Try multiplying by ${divisor}`;
+                } else {
+                    isCorrect = false;
+                    feedback = 'Try a different operation';
+                }
+                
+                if (isCorrect) {
+                    stepDiv.classList.add('completed');
+                    stepDiv.innerHTML += '<span style="color: var(--success-green); margin-left: 10px;">✓</span>';
+                } else {
+                    stepDiv.classList.add('error');
+                    stepDiv.innerHTML += `<span style="color: var(--danger-red); margin-left: 10px;">✗ ${feedback}</span>`;
+                }
+            }
+        }
+        
+        // Helper function to apply a step to an equation
+        function applyStepToEquation(equation, operation, value) {
+            const parts = equation.split('=');
+            let leftSide = parts[0].trim();
+            let rightSide = parseInt(parts[1].trim());
+            
+            // Apply the operation
+            if (operation === '+') {
+                rightSide += value;
+                // Check if we're adding to cancel a subtraction
+                if (leftSide.includes('-')) {
+                    const match = leftSide.match(/(.+)\s*-\s*(\d+)/);
+                    if (match && parseInt(match[2]) === value) {
+                        leftSide = match[1].trim();
+                    }
+                }
+            } else if (operation === '-') {
+                rightSide -= value;
+                // Check if we're subtracting to cancel an addition
+                if (leftSide.includes('+')) {
+                    const match = leftSide.match(/(.+)\s*\+\s*(\d+)/);
+                    if (match && parseInt(match[2]) === value) {
+                        leftSide = match[1].trim();
+                    }
+                }
+            } else if (operation === '÷') {
+                rightSide = rightSide / value;
+                // Check if we're dividing a multiplication
+                const match = leftSide.match(/(\d+)x/);
+                if (match && parseInt(match[1]) === value) {
+                    leftSide = 'x';
+                }
+            } else if (operation === '×') {
+                rightSide *= value;
+                // Check if we're multiplying a division
+                const match = leftSide.match(/x\s*÷\s*(\d+)/);
+                if (match && parseInt(match[1]) === value) {
+                    leftSide = 'x';
+                }
+            }
+            
+            return `${leftSide} = ${rightSide}`;
+        }
+
+        function checkAnswer(difficulty, index) {
+            const problem = worksheetProblems[difficulty][index];
+            const userAnswer = parseInt(document.getElementById(`answer-${difficulty}-${index}`).value);
+            const feedback = document.getElementById(`problem-feedback-${difficulty}-${index}`);
+            const attemptsSpan = document.getElementById(`attempts-${difficulty}-${index}`);
+            
+            const key = `${difficulty}-${index}`;
+            if (!problemAttempts[key]) {
+                problemAttempts[key] = 0;
+            }
+            
+            problemAttempts[key]++;
+            attemptsSpan.textContent = problemAttempts[key];
+            
+            if (userAnswer === problem.answer) {
+                feedback.className = 'feedback success show';
+                feedback.innerHTML = '<strong>🎉 Correct!</strong> Excellent work! The scale is perfectly balanced!';
+                
+                // Calculate XP based on attempts
+                let earnedXP = problem.xp;
+                if (problemAttempts[key] > 1) {
+                    earnedXP = Math.max(Math.round(problem.xp * (1 - (problemAttempts[key] - 1) * 0.2)), 5);
+                }
+                
+                addXP(earnedXP);
+                problemsCompleted++;
+                updateProgress();
+                
+                // Disable input and style the card
+                document.getElementById(`answer-${difficulty}-${index}`).disabled = true;
+                const problemCard = document.getElementById(`answer-${difficulty}-${index}`).closest('.problem-card');
+                problemCard.style.background = '#e8f5e9';
+                problemCard.style.borderLeft = '4px solid var(--success-green)';
+                
+                // Show the balance value
+                const balanceInfo = problemCard.querySelector('.balance-info small');
+                const parts = problem.equation.split('=');
+                const leftBlocks = parseEquationToBlocks(parts[0].trim());
+                const balanceValue = calculateSideValue(leftBlocks, problem.answer);
+                balanceInfo.innerHTML = `✅ When x = ${problem.answer}, both sides equal <span class="weight-value">${balanceValue}</span>`;
+            } else {
+                feedback.className = 'feedback error show';
+                let hint = '';
+                if (userAnswer > problem.answer) {
+                    hint = 'Your answer is too high.';
+                } else {
+                    hint = 'Your answer is too low.';
+                }
+                feedback.innerHTML = `<strong>Not quite.</strong> ${hint} Check your steps and try again!`;
+            }
+        }
+
+        function showProblemHint(difficulty, index) {
+            const hintBox = document.getElementById(`problem-hint-${difficulty}-${index}`);
+            hintBox.classList.add('show');
+            
+            // Add specific hint based on equation type
+            const equation = worksheetProblems[difficulty][index].equation;
+            let specificHint = '';
+            
+            if (equation.includes('+')) {
+                specificHint = ' For addition equations (x + a = b), subtract a from both sides.';
+            } else if (equation.includes('-') && equation.indexOf('-') > equation.indexOf('x')) {
+                specificHint = ' For subtraction equations (x - a = b), add a to both sides.';
+            } else if (equation.match(/\d+x/)) {
+                specificHint = ' For multiplication equations (ax = b), divide both sides by a.';
+            } else if (equation.includes('÷')) {
+                specificHint = ' For division equations (x ÷ a = b), multiply both sides by a.';
+            }
+            
+            hintBox.innerHTML += specificHint;
+        }
+
+        function addXP(amount) {
+            currentXP += amount;
+            document.getElementById('xp-value').textContent = currentXP;
+            
+            // Add pulse animation
+            const xpDisplay = document.getElementById('xp-display');
+            xpDisplay.classList.add('pulse');
+            setTimeout(() => {
+                xpDisplay.classList.remove('pulse');
+            }, 500);
+            
+            // Check for achievements
+            if (currentXP >= 100 && currentXP - amount < 100) {
+                showAchievement('🏆 Century Club! 100 XP earned!');
+            } else if (currentXP >= 250 && currentXP - amount < 250) {
+                showAchievement('🌟 Math Master! 250 XP earned!');
+            } else if (currentXP >= 500 && currentXP - amount < 500) {
+                showAchievement('🎖️ Algebra Champion! 500 XP earned!');
+            }
+        }
+
+        function showAchievement(message) {
+            const achievement = document.createElement('div');
+            achievement.className = 'achievement';
+            achievement.textContent = message;
+            document.body.appendChild(achievement);
+            
+            setTimeout(() => {
+                achievement.remove();
+            }, 3500);
+        }
+
+        function updateProgress() {
+            const percentage = (problemsCompleted / totalProblems) * 100;
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            updateProgressDisplay();
+            
+            // Check for completion
+            if (problemsCompleted === totalProblems) {
+                showAchievement('🎊 Worksheet Complete! Amazing job!');
+            }
+        }
+
+        function updateProgressDisplay() {
+            document.getElementById('progress-text').textContent = 
+                `${problemsCompleted} of ${totalProblems} problems completed`;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Touch support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                // Swipe left - next tab
+                const activeTab = document.querySelector('.tab.active');
+                const nextTab = activeTab.nextElementSibling;
+                if (nextTab && nextTab.classList.contains('tab')) {
+                    nextTab.click();
+                }
+            }
+            if (touchEndX > touchStartX + swipeThreshold) {
+                // Swipe right - previous tab
+                const activeTab = document.querySelector('.tab.active');
+                const prevTab = activeTab.previousElementSibling;
+                if (prevTab && prevTab.classList.contains('tab')) {
+                    prevTab.click();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

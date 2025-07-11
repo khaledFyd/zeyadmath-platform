@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍩 Donut Algebra - Combining Like Terms</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-pink: #ff6b9d;
+            --primary-pink-dark: #e91e63;
+            --donut-brown: #8d4e2a;
+            --donut-brown-dark: #6d3e20;
+            --success-green: #4caf50;
+            --success-green-dark: #388e3c;
+            --danger-red: #f44336;
+            --danger-red-dark: #d32f2f;
+            --warning-orange: #ff9800;
+            --warning-orange-dark: #f57c00;
+            --box-brown: #d2b48c;
+            --box-brown-dark: #cd853f;
+            --cream: #fff8dc;
+            --light-pink: #ffb3d1;
+            --gray: #9e9e9e;
+            --gray-dark: #616161;
+            --light-gray: #f5f5f5;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #ffb3d1 0%, #fff8dc 50%, #ffb3d1 100%);
+            min-height: 100vh;
+            padding: 15px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-pink-dark) 100%);
+            color: white;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .donut-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .xp-display {
+            background: rgba(255,255,255,0.2);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: clamp(16px, 3vw, 20px);
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .xp-display.pulse {
+            animation: pulse 0.6s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            background: var(--cream);
+            border-bottom: 3px solid var(--box-brown);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 140px;
+            padding: 18px 24px;
+            text-align: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: bold;
+            color: var(--donut-brown);
+            transition: var(--transition);
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--light-pink);
+            color: var(--primary-pink-dark);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary-pink);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-pink);
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            padding: clamp(20px, 4vw, 35px);
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        /* Donut Box Styles */
+        .donut-workspace {
+            background: linear-gradient(135deg, var(--cream) 0%, #f0e6d2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .donut-box {
+            width: 400px;
+            height: 300px;
+            background: linear-gradient(135deg, var(--box-brown) 0%, var(--box-brown-dark) 100%);
+            border-radius: 15px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .box-lid {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(135deg, #e6be8a 0%, var(--box-brown) 100%);
+            border-radius: 15px 15px 0 0;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .box-lid::after {
+            content: "D🍩NUTS";
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: var(--donut-brown-dark);
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        }
+
+        .donut-container {
+            width: 100%;
+            height: 240px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Donut Styles */
+        .donut {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            animation: donutDrop 0.5s ease-out;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .donut:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .donut.x-donut {
+            background: radial-gradient(circle at 30% 30%, #ffb3d1, var(--primary-pink), var(--primary-pink-dark));
+        }
+
+        .donut.x2-donut {
+            background: radial-gradient(circle at 30% 30%, #b39ddb, #673ab7, #512da8);
+        }
+
+        .donut.y-donut {
+            background: radial-gradient(circle at 30% 30%, #d4a574, var(--donut-brown), var(--donut-brown-dark));
+        }
+
+        .donut.positive-donut {
+            background: radial-gradient(circle at 30% 30%, #81c784, var(--success-green), var(--success-green-dark));
+        }
+
+        .donut.negative-donut {
+            background: radial-gradient(circle at 30% 30%, #e57373, var(--danger-red), var(--danger-red-dark));
+        }
+
+        .donut::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 18px;
+            height: 18px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .donut::after {
+            content: attr(data-label);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .donut.removing {
+            animation: donutRemove 0.5s ease-out forwards;
+        }
+
+        @keyframes donutDrop {
+            0% { 
+                opacity: 0; 
+                transform: translateY(-50px) rotate(180deg) scale(0); 
+            }
+            60% { 
+                opacity: 0.8; 
+                transform: translateY(5px) rotate(90deg) scale(1.2); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) rotate(0deg) scale(1); 
+            }
+        }
+
+        @keyframes donutRemove {
+            0% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.3) rotate(-90deg);
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0) rotate(-180deg); 
+            }
+        }
+
+        /* Expression Display */
+        .expression-display {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-pink);
+            box-shadow: var(--box-shadow);
+            border: 3px solid var(--light-pink);
+        }
+
+        .expression-step {
+            margin: 10px 0;
+            padding: 15px;
+            background: var(--cream);
+            border-radius: 10px;
+            font-size: 18px;
+            border-left: 4px solid var(--primary-pink);
+        }
+
+        /* Control Buttons */
+        .donut-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--box-shadow);
+            border: 2px solid var(--light-pink);
+        }
+
+        .control-label {
+            font-weight: bold;
+            color: var(--donut-brown);
+            font-size: 14px;
+        }
+
+        .donut-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donut-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .donut-btn:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+
+        .donut-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .add-x { background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-pink-dark) 100%); }
+        .remove-x { background: linear-gradient(135deg, #ff8a80 0%, var(--danger-red) 100%); }
+        .add-x2 { background: linear-gradient(135deg, #673ab7 0%, #512da8 100%); }
+        .remove-x2 { background: linear-gradient(135deg, #b39ddb 0%, #9575cd 100%); }
+        .add-y { background: linear-gradient(135deg, var(--donut-brown) 0%, var(--donut-brown-dark) 100%); }
+        .remove-y { background: linear-gradient(135deg, #bcaaa4 0%, var(--gray-dark) 100%); }
+        .add-num { background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%); }
+        .remove-num { background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-dark) 100%); }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: bold;
+            transition: var(--transition);
+            margin: 5px;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            opacity: 0.6;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-pink-dark) 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-dark) 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red) 0%, var(--danger-red-dark) 100%);
+        }
+
+        /* Tutorial Navigation */
+        .tutorial-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .tutorial-btn {
+            padding: 15px 25px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-pink-dark) 100%);
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: clamp(14px, 2.5vw, 16px);
+            font-weight: bold;
+            transition: var(--transition);
+            min-height: 50px;
+            box-shadow: 0 4px 8px rgba(255,107,157,0.3);
+        }
+
+        .tutorial-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+        }
+
+        .tutorial-btn:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+        }
+
+        /* Steps and Feedback */
+        .steps {
+            background: var(--cream);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .step {
+            padding: 18px;
+            margin: 12px 0;
+            background: white;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-pink);
+            animation: slideInLeft 0.5s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideInLeft {
+            from { 
+                opacity: 0; 
+                transform: translateX(-30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+
+        /* Grid Layouts */
+        .examples-grid, .revision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .example-card, .revision-card, .problem-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--light-pink);
+        }
+
+        .example-card::before, .revision-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-pink), var(--donut-brown), var(--success-green));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .example-card:hover::before, .revision-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .example-card:hover, .revision-card:hover, .problem-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Difficulty Badges */
+        .difficulty {
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .difficulty.easy {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .difficulty.medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .difficulty.hard {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Feedback Messages */
+        .feedback {
+            padding: 18px;
+            border-radius: 12px;
+            margin: 18px 0;
+            font-weight: bold;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 5px solid var(--success-green);
+        }
+
+        .feedback.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 5px solid var(--danger-red);
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 15px;
+            height: 28px;
+            overflow: hidden;
+            margin: 25px 0;
+            position: relative;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-pink-dark) 100%);
+            transition: width 0.6s ease;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(255,255,255,0.3) 25%, 
+                rgba(255,255,255,0.3) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(255,255,255,0.3) 75%
+            );
+            background-size: 30px 30px;
+            animation: progress-stripes 1s linear infinite;
+        }
+
+        @keyframes progress-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 30px 0; }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            color: var(--donut-brown);
+            font-weight: bold;
+        }
+
+        /* Check Button */
+        .check-btn {
+            width: 120px;
+            height: 50px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 15px auto;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .check-btn.default {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .check-btn.correct {
+            background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-dark) 100%);
+            animation: correctPulse 0.6s ease;
+        }
+
+        .check-btn.incorrect {
+            background: linear-gradient(135deg, var(--danger-red) 0%, var(--danger-red-dark) 100%);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            header {
+                padding: 20px;
+                text-align: center;
+            }
+
+            .donut-box {
+                width: 320px;
+                height: 250px;
+                transform: scale(0.9);
+            }
+
+            .donut-controls {
+                gap: 10px;
+            }
+
+            .control-group {
+                padding: 10px;
+            }
+
+            .examples-grid, .revision-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tutorial-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tutorial-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .donut-box {
+                width: 280px;
+                height: 220px;
+                transform: scale(0.8);
+            }
+
+            .donut {
+                width: 35px;
+                height: 35px;
+            }
+
+            .donut::before {
+                width: 14px;
+                height: 14px;
+            }
+
+            .donut::after {
+                font-size: 10px;
+            }
+
+            .expression-display {
+                font-size: 18px;
+            }
+
+            .tab {
+                padding: 15px 18px;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 15px; }
+        .mt-2 { margin-top: 25px; }
+        .mb-1 { margin-bottom: 15px; }
+        .mb-2 { margin-bottom: 25px; }
+
+        /* Achievement Toast */
+        .achievement {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideInRight 0.5s ease, slideOutRight 0.5s ease 3s forwards;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                🍩 Donut Algebra
+                <span class="donut-badge">Combining Like Terms ✨</span>
+            </h1>
+            <div class="xp-display" id="xp-display">
+                <span>🏆 XP: </span><span id="xp-value">0</span>
+            </div>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Main navigation">
+            <button class="tab active" role="tab" aria-selected="true" aria-controls="tutorial" onclick="switchTab('tutorial')">
+                📚 Tutorial
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="examples" onclick="switchTab('examples')">
+                🎯 Examples
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="worksheet" onclick="switchTab('worksheet')">
+                ✏️ Worksheet
+            </button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="revision" onclick="switchTab('revision')">
+                📋 Reference
+            </button>
+        </nav>
+
+        <!-- Tutorial Tab -->
+        <div id="tutorial" class="tab-content active" role="tabpanel">
+            <h2>Learn to Combine Like Terms with Donuts! 🍩</h2>
+            <p class="text-center mb-2">
+                <strong>🔑 Key Rule:</strong> Only donuts of the same type can be combined together!<br>
+                <small>🍩 Pink = x, 🟣 Purple = x², 🤎 Brown = y</small>
+            </p>
+            
+            <div class="tutorial-nav">
+                <button class="tutorial-btn" onclick="loadTutorial(0)">🍩 Basic Terms (2x + 6x)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(1)">🧮 Mixed Variables (3x + 2y + x)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(2)">📊 Complex Expression (5x² + 3x + 2x²)</button>
+                <button class="tutorial-btn" onclick="loadTutorial(3)">🎯 Advanced (6x + 6y - 4x - 5y)</button>
+            </div>
+
+            <div id="tutorial-content">
+                <h3 id="tutorial-title" class="text-center">Loading...</h3>
+                
+                <div class="donut-workspace">
+                    <div class="expression-display" id="tutorial-expression">
+                        2x + 6x = ?
+                    </div>
+                    
+                    <div class="donut-box">
+                        <div class="box-lid"></div>
+                        <div class="donut-container" id="tutorial-donuts"></div>
+                    </div>
+
+                    <div class="donut-controls" id="tutorial-controls">
+                        <div class="control-group">
+                            <div class="control-label">Pink Donuts (x)</div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="donut-btn add-x" onclick="addDonut('tutorial', 'x')" title="Add x donut">+</button>
+                                <button class="donut-btn remove-x" onclick="removeDonut('tutorial', 'x')" title="Remove x donut">−</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">Purple Donuts (x²)</div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="donut-btn add-x2" onclick="addDonut('tutorial', 'x2')" title="Add x² donut">+</button>
+                                <button class="donut-btn remove-x2" onclick="removeDonut('tutorial', 'x2')" title="Remove x² donut">−</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">Brown Donuts (y)</div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="donut-btn add-y" onclick="addDonut('tutorial', 'y')" title="Add y donut">+</button>
+                                <button class="donut-btn remove-y" onclick="removeDonut('tutorial', 'y')" title="Remove y donut">−</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="check-btn default" id="tutorial-check" onclick="checkTutorialStep()">
+                        Check
+                    </button>
+                </div>
+
+                <div class="steps" id="tutorial-steps"></div>
+
+                <div class="tutorial-nav">
+                    <button class="btn btn-primary" id="prev-step" onclick="prevStep()" disabled>
+                        ⬅️ Previous
+                    </button>
+                    <button class="btn btn-primary" id="next-step" onclick="nextStep()">
+                        Next ➡️
+                    </button>
+                    <button class="btn btn-warning" onclick="resetTutorial()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Tab -->
+        <div id="examples" class="tab-content" role="tabpanel">
+            <h2>Practice Examples</h2>
+            <p class="text-center mb-2">
+                Watch how to combine like terms step by step! 🍩 Pink = x, 🟣 Purple = x², 🤎 Brown = y ✨
+            </p>
+            <div class="examples-grid" id="examples-grid"></div>
+        </div>
+
+        <!-- Worksheet Tab -->
+        <div id="worksheet" class="tab-content" role="tabpanel">
+            <h2>Combine Like Terms Worksheet</h2>
+            <p class="text-center mb-2">
+                Use the donut controls to create the correct simplified expression. 🍩 Pink = x, 🟣 Purple = x², 🤎 Brown = y. Earn XP for correct answers! 🏆
+            </p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+            <p class="progress-text">
+                <span id="progress-text">0 of 12 problems completed</span>
+            </p>
+            
+            <section>
+                <h3>🟢 Easy Problems (20 XP each)</h3>
+                <div id="easy-problems"></div>
+            </section>
+            
+            <section>
+                <h3>🟡 Medium Problems (30 XP each)</h3>
+                <div id="medium-problems"></div>
+            </section>
+            
+            <section>
+                <h3>🔴 Hard Problems (50 XP each)</h3>
+                <div id="hard-problems"></div>
+            </section>
+        </div>
+
+        <!-- Revision Tab -->
+        <div id="revision" class="tab-content" role="tabpanel">
+            <h2>Like Terms Reference Guide</h2>
+            <p class="text-center mb-2">
+                Everything you need to know about combining like terms! 📖🍩
+            </p>
+            
+            <div class="revision-grid">
+                <div class="revision-card" style="border-color: var(--primary-pink);">
+                    <h3>🎯 What are Like Terms?</h3>
+                    <p><strong>Like terms</strong> are terms that have the same variable raised to the same power.</p>
+                    <div class="text-center mt-2 mb-2">
+                        <div style="display: inline-block; padding: 15px 30px; background: var(--cream); border-radius: 25px; font-size: 18px; font-weight: bold;">
+                            Same Variable = Like Terms ✅
+                        </div>
+                    </div>
+                    <p><strong>Examples:</strong></p>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>3x and 5x are like terms</li>
+                        <li>2y and -7y are like terms</li>
+                        <li>x² and 4x² are like terms</li>
+                        <li>But 3x and 2y are NOT like terms</li>
+                    </ul>
+                </div>
+
+                <div class="revision-card" style="border-color: var(--donut-brown);">
+                    <h3>🍩 Donut Types</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin: 15px 0;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="donut x-donut" style="position: static; width: 40px; height: 40px;"></div>
+                            <span><strong>Pink Donuts</strong> = x variables (linear terms)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="donut x2-donut" style="position: static; width: 40px; height: 40px;"></div>
+                            <span><strong>Purple Donuts</strong> = x² variables (squared terms)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="donut y-donut" style="position: static; width: 40px; height: 40px;"></div>
+                            <span><strong>Brown Donuts</strong> = y variables</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="donut positive-donut" style="position: static; width: 40px; height: 40px;"></div>
+                            <span><strong>Green Donuts</strong> = positive numbers</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div class="donut negative-donut" style="position: static; width: 40px; height: 40px;"></div>
+                            <span><strong>Red Donuts</strong> = negative numbers</span>
+                        </div>
+                    </div>
+                    <p><em>Only combine donuts of the same color and type! 🍩</em></p>
+                    <div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Important:</strong> Pink donuts (x) and Purple donuts (x²) are different! They cannot be combined.
+                    </div>
+                </div>
+
+                <div class="revision-card" style="border-color: var(--success-green);">
+                    <h3>➕➖ Combining Rules</h3>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin: 15px 0;">
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+                            <strong>Addition:</strong><br>
+                            3x + 5x = 8x<br>
+                            <em>Add the coefficients (3 + 5 = 8)</em>
+                        </div>
+                        <div style="background: #ffebee; padding: 15px; border-radius: 10px;">
+                            <strong>Subtraction:</strong><br>
+                            7x - 2x = 5x<br>
+                            <em>Subtract the coefficients (7 - 2 = 5)</em>
+                        </div>
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 10px;">
+                            <strong>Mixed Signs:</strong><br>
+                            4x - 6x = -2x<br>
+                            <em>Subtract normally (4 - 6 = -2)</em>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="revision-card" style="border-color: var(--warning-orange);">
+                    <h3>📊 Step-by-Step Process</h3>
+                    <ol style="margin: 15px 0 0 20px; line-height: 2;">
+                        <li><strong>Identify:</strong> Find all like terms in the expression 🔍</li>
+                        <li><strong>Group:</strong> Put like terms together 👥</li>
+                        <li><strong>Combine:</strong> Add or subtract the coefficients ➕➖</li>
+                        <li><strong>Write:</strong> Express the simplified result ✍️</li>
+                        <li><strong>Check:</strong> Make sure all like terms are combined ✅</li>
+                    </ol>
+                </div>
+
+                <div class="revision-card" style="border-color: var(--primary-pink);">
+                    <h3>🎲 Common Examples</h3>
+                    <div style="line-height: 2; margin: 15px 0;">
+                        <div><strong>Simple:</strong> 2x + 3x = 5x</div>
+                        <div><strong>Mixed:</strong> 5x + 2y + x = 6x + 2y</div>
+                        <div><strong>Subtraction:</strong> 8x - 3x = 5x</div>
+                        <div><strong>Complex:</strong> 4x + 2y - x + 3y = 3x + 5y</div>
+                        <div><strong>Powers:</strong> 3x² + 2x² = 5x² (but x² + x ≠ combined!)</div>
+                        <div><strong>Constants:</strong> 5 + 3 = 8</div>
+                    </div>
+                </div>
+
+                <div class="revision-card" style="border-color: var(--danger-red);">
+                    <h3>⚠️ Common Mistakes</h3>
+                    <div style="margin: 15px 0;">
+                        <div style="background: #ffebee; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <strong>❌ Wrong:</strong> 3x + 2y = 5xy<br>
+                            <strong>✅ Right:</strong> 3x + 2y = 3x + 2y (cannot combine)
+                        </div>
+                        <div style="background: #ffebee; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <strong>❌ Wrong:</strong> x² + x = x³<br>
+                            <strong>✅ Right:</strong> x² + x = x² + x (different powers)
+                        </div>
+                        <div style="background: #ffebee; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <strong>❌ Wrong:</strong> 2x + 3x = 5x²<br>
+                            <strong>✅ Right:</strong> 2x + 3x = 5x (add coefficients, keep variable)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // Global variables
+        let currentXP = 0;
+        let currentTutorial = 0;
+        let currentStep = 0;
+        let problemsCompleted = 0;
+        const totalProblems = 12;
+        let currentProblemData = {};
+        
+        // Track which problems have been solved for XP
+        const solvedProblems = new Set();
+        const SOLVED_PROBLEMS_KEY = 'donutAlgebra_solvedProblems';
+        
+        // Load previously solved problems from sessionStorage
+        function loadSolvedProblems() {
+            try {
+                const saved = sessionStorage.getItem(SOLVED_PROBLEMS_KEY);
+                if (saved) {
+                    const problemIds = JSON.parse(saved);
+                    problemIds.forEach(id => solvedProblems.add(id));
+                    console.log('Loaded solved problems:', solvedProblems.size);
+                }
+            } catch (error) {
+                console.error('Error loading solved problems:', error);
+            }
+        }
+        
+        // Save solved problems to sessionStorage
+        function saveSolvedProblems() {
+            try {
+                const problemIds = Array.from(solvedProblems);
+                sessionStorage.setItem(SOLVED_PROBLEMS_KEY, JSON.stringify(problemIds));
+            } catch (error) {
+                console.error('Error saving solved problems:', error);
+            }
+        }
+
+        // Tutorial data
+        const tutorials = [
+            {
+                title: "Basic Like Terms: 2x + 6x",
+                expression: "2x + 6x = ?",
+                answer: "8x",
+                initial: { x: 8, x2: 0, y: 0 },
+                steps: [
+                    {
+                        description: "Step 1: Start with 2x + 6x. We have 2 pink donuts (x) and 6 more pink donuts (x). Count them: 2 + 6 = 8 pink donuts total.",
+                        expression: "2x + 6x",
+                        targetDonuts: { x: 8, x2: 0, y: 0 }
+                    },
+                    {
+                        description: "Step 2: Since all donuts are the same type (pink/x), we can combine them. The result is 8x - eight pink donuts!",
+                        expression: "8x",
+                        targetDonuts: { x: 8, x2: 0, y: 0 }
+                    }
+                ]
+            },
+            {
+                title: "Mixed Variables: 3x + 2y + x",
+                expression: "3x + 2y + x = ?",
+                answer: "4x + 2y",
+                initial: { x: 4, x2: 0, y: 2 },
+                steps: [
+                    {
+                        description: "Step 1: We have 3x + 2y + x. That's 3 pink donuts (x), 2 brown donuts (y), and 1 more pink donut (x).",
+                        expression: "3x + 2y + x",
+                        targetDonuts: { x: 4, x2: 0, y: 2 }
+                    },
+                    {
+                        description: "Step 2: Combine the like terms. Pink donuts: 3x + x = 4x. Brown donuts stay as 2y. Result: 4x + 2y",
+                        expression: "4x + 2y",
+                        targetDonuts: { x: 4, x2: 0, y: 2 }
+                    }
+                ]
+            },
+            {
+                title: "Powers: 5x² + 3x + 2x²",
+                expression: "5x² + 3x + 2x² = ?",
+                answer: "7x² + 3x",
+                initial: { x: 3, x2: 7, y: 0 },
+                steps: [
+                    {
+                        description: "Step 1: We have 5x² + 3x + 2x². The x² terms (purple donuts) can be combined, but x terms (pink donuts) stay separate.",
+                        expression: "5x² + 3x + 2x²",
+                        targetDonuts: { x: 3, x2: 7, y: 0 }
+                    },
+                    {
+                        description: "Step 2: Combine x² terms: 5x² + 2x² = 7x². The 3x stays as is. Result: 7x² + 3x",
+                        expression: "7x² + 3x",
+                        targetDonuts: { x: 3, x2: 7, y: 0 }
+                    }
+                ]
+            },
+            {
+                title: "Advanced: 6x + 6y - 4x - 5y",
+                expression: "6x + 6y - 4x - 5y = ?",
+                answer: "2x + y",
+                initial: { x: 2, x2: 0, y: 1 },
+                steps: [
+                    {
+                        description: "Step 1: We have 6x + 6y - 4x - 5y. Group like terms: (6x - 4x) + (6y - 5y)",
+                        expression: "6x + 6y - 4x - 5y",
+                        targetDonuts: { x: 2, x2: 0, y: 1 }
+                    },
+                    {
+                        description: "Step 2: Combine x terms: 6x - 4x = 2x. Combine y terms: 6y - 5y = y. Result: 2x + y",
+                        expression: "2x + y",
+                        targetDonuts: { x: 2, x2: 0, y: 1 }
+                    }
+                ]
+            }
+        ];
+
+        // Examples data
+        const examples = [
+            { 
+                expression: "4x + 3x = ?", 
+                answer: "7x", 
+                difficulty: "easy", 
+                xp: 20,
+                targetDonuts: { x: 7, x2: 0, y: 0 },
+                hint: "Count all the pink donuts (x terms) together: 4 + 3 = 7"
+            },
+            { 
+                expression: "5y + 2y = ?", 
+                answer: "7y", 
+                difficulty: "easy", 
+                xp: 20,
+                targetDonuts: { x: 0, x2: 0, y: 7 },
+                hint: "Count all the brown donuts (y terms) together: 5 + 2 = 7"
+            },
+            { 
+                expression: "2x + 3y + x = ?", 
+                answer: "3x + 3y", 
+                difficulty: "medium", 
+                xp: 30,
+                targetDonuts: { x: 3, x2: 0, y: 3 },
+                hint: "Combine pink donuts: 2x + x = 3x. Brown donuts stay as 3y"
+            },
+            { 
+                expression: "8x - 3x = ?", 
+                answer: "5x", 
+                difficulty: "medium", 
+                xp: 30,
+                targetDonuts: { x: 5, x2: 0, y: 0 },
+                hint: "Subtract pink donuts: 8 - 3 = 5"
+            },
+            { 
+                expression: "7x + 4y - 2x - y = ?", 
+                answer: "5x + 3y", 
+                difficulty: "hard", 
+                xp: 50,
+                targetDonuts: { x: 5, x2: 0, y: 3 },
+                hint: "Group like terms: (7x - 2x) + (4y - y) = 5x + 3y"
+            },
+            { 
+                expression: "3x² + x + 2x² = ?", 
+                answer: "5x² + x", 
+                difficulty: "hard", 
+                xp: 50,
+                targetDonuts: { x: 1, x2: 5, y: 0 },
+                hint: "Only x² terms (purple donuts) can combine: 3x² + 2x² = 5x². The x (pink donut) stays separate."
+            }
+        ];
+
+        // Worksheet problems
+        const worksheetProblems = {
+            easy: [
+                { expression: "3x + 5x", answer: "8x", targetDonuts: { x: 8, x2: 0, y: 0 }, xp: 20 },
+                { expression: "6y + 2y", answer: "8y", targetDonuts: { x: 0, x2: 0, y: 8 }, xp: 20 },
+                { expression: "7x - 2x", answer: "5x", targetDonuts: { x: 5, x2: 0, y: 0 }, xp: 20 },
+                { expression: "9y - 4y", answer: "5y", targetDonuts: { x: 0, x2: 0, y: 5 }, xp: 20 }
+            ],
+            medium: [
+                { expression: "4x + 2y + x", answer: "5x + 2y", targetDonuts: { x: 5, x2: 0, y: 2 }, xp: 30 },
+                { expression: "3x + 4y + 2x", answer: "5x + 4y", targetDonuts: { x: 5, x2: 0, y: 4 }, xp: 30 },
+                { expression: "8x - 3x + y", answer: "5x + y", targetDonuts: { x: 5, x2: 0, y: 1 }, xp: 30 },
+                { expression: "6y + 3x - 2y", answer: "3x + 4y", targetDonuts: { x: 3, x2: 0, y: 4 }, xp: 30 }
+            ],
+            hard: [
+                { expression: "5x + 3y - 2x - y", answer: "3x + 2y", targetDonuts: { x: 3, x2: 0, y: 2 }, xp: 50 },
+                { expression: "4x² + 2x + x²", answer: "5x² + 2x", targetDonuts: { x: 2, x2: 5, y: 0 }, xp: 50 },
+                { expression: "7x + 4y - 4x - 3y", answer: "3x + y", targetDonuts: { x: 3, x2: 0, y: 1 }, xp: 50 },
+                { expression: "6x² - 2x² + 3x", answer: "4x² + 3x", targetDonuts: { x: 3, x2: 4, y: 0 }, xp: 50 }
+            ]
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load previously solved problems
+            loadSolvedProblems();
+            
+            setTimeout(() => {
+                loadTutorial(0);
+                generateExamples();
+                generateWorksheetProblems();
+                updateProgressDisplay();
+            }, 100);
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const tabIndex = ['tutorial', 'examples', 'worksheet', 'revision'].indexOf(tabName);
+            if (tabIndex !== -1) {
+                tabs[tabIndex].classList.add('active');
+                tabs[tabIndex].setAttribute('aria-selected', 'true');
+                document.getElementById(tabName).classList.add('active');
+            }
+        }
+
+        // Tutorial functions
+        function loadTutorial(index) {
+            currentTutorial = index;
+            currentStep = 0;
+            const tutorial = tutorials[index];
+            
+            document.getElementById('tutorial-title').textContent = tutorial.title;
+            document.getElementById('tutorial-expression').textContent = tutorial.expression;
+            
+            // Clear donuts and reset
+            clearDonuts('tutorial');
+            addInitialDonuts('tutorial', tutorial.initial);
+            
+            updateTutorialSteps();
+            updateNavigationButtons();
+            resetCheckButton('tutorial-check');
+        }
+
+        function updateTutorialSteps() {
+            const tutorial = tutorials[currentTutorial];
+            const stepsContainer = document.getElementById('tutorial-steps');
+            stepsContainer.innerHTML = '';
+            
+            for (let i = 0; i <= Math.min(currentStep, tutorial.steps.length - 1); i++) {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step';
+                stepDiv.innerHTML = `<strong>${tutorial.steps[i].description}</strong>`;
+                stepsContainer.appendChild(stepDiv);
+                
+                // Update expression display
+                document.getElementById('tutorial-expression').textContent = tutorial.steps[i].expression;
+            }
+        }
+
+        function nextStep() {
+            const tutorial = tutorials[currentTutorial];
+            if (currentStep < tutorial.steps.length) {
+                currentStep++;
+                updateTutorialSteps();
+                updateNavigationButtons();
+                resetCheckButton('tutorial-check');
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                if (currentStep === 0) {
+                    loadTutorial(currentTutorial);
+                } else {
+                    updateTutorialSteps();
+                    updateNavigationButtons();
+                    resetCheckButton('tutorial-check');
+                }
+            }
+        }
+
+        function resetTutorial() {
+            loadTutorial(currentTutorial);
+        }
+
+        function updateNavigationButtons() {
+            const tutorial = tutorials[currentTutorial];
+            document.getElementById('prev-step').disabled = currentStep === 0;
+            document.getElementById('next-step').disabled = currentStep >= tutorial.steps.length;
+        }
+
+        // Donut management
+        function addDonut(containerId, type) {
+            const container = document.getElementById(`${containerId}-donuts`);
+            const donut = document.createElement('div');
+            donut.className = `donut ${type}-donut`;
+            
+            // Set the correct label for each donut type
+            if (type === 'x2') {
+                donut.setAttribute('data-label', 'x²');
+            } else {
+                donut.setAttribute('data-label', type);
+            }
+            
+            donut.onclick = () => removeSpecificDonut(donut);
+            container.appendChild(donut);
+        }
+
+        function removeDonut(containerId, type) {
+            const container = document.getElementById(`${containerId}-donuts`);
+            const donuts = container.querySelectorAll(`.${type}-donut`);
+            if (donuts.length > 0) {
+                const lastDonut = donuts[donuts.length - 1];
+                lastDonut.classList.add('removing');
+                setTimeout(() => {
+                    if (lastDonut.parentNode) {
+                        lastDonut.parentNode.removeChild(lastDonut);
+                    }
+                }, 500);
+            }
+        }
+
+        function removeSpecificDonut(donutElement) {
+            donutElement.classList.add('removing');
+            setTimeout(() => {
+                if (donutElement.parentNode) {
+                    donutElement.parentNode.removeChild(donutElement);
+                }
+            }, 500);
+        }
+
+        function clearDonuts(containerId) {
+            const container = document.getElementById(`${containerId}-donuts`);
+            container.innerHTML = '';
+        }
+
+        function addInitialDonuts(containerId, counts) {
+            clearDonuts(containerId);
+            
+            // Add x donuts
+            for (let i = 0; i < (counts.x || 0); i++) {
+                setTimeout(() => addDonut(containerId, 'x'), i * 100);
+            }
+            
+            // Add x2 donuts
+            for (let i = 0; i < (counts.x2 || 0); i++) {
+                setTimeout(() => addDonut(containerId, 'x2'), ((counts.x || 0) + i) * 100);
+            }
+            
+            // Add y donuts
+            for (let i = 0; i < (counts.y || 0); i++) {
+                setTimeout(() => addDonut(containerId, 'y'), ((counts.x || 0) + (counts.x2 || 0) + i) * 100);
+            }
+        }
+
+        function countDonuts(containerId) {
+            const container = document.getElementById(`${containerId}-donuts`);
+            return {
+                x: container.querySelectorAll('.x-donut').length,
+                x2: container.querySelectorAll('.x2-donut').length,
+                y: container.querySelectorAll('.y-donut').length
+            };
+        }
+
+        // Check functions
+        function checkTutorialStep() {
+            const tutorial = tutorials[currentTutorial];
+            const currentStepData = tutorial.steps[currentStep];
+            
+            if (!currentStepData) {
+                showCheckResult('tutorial-check', false, "No step to check!");
+                return;
+            }
+            
+            const actualDonuts = countDonuts('tutorial');
+            const expectedDonuts = currentStepData.targetDonuts;
+            
+            const isCorrect = actualDonuts.x === (expectedDonuts.x || 0) && 
+                             actualDonuts.x2 === (expectedDonuts.x2 || 0) && 
+                             actualDonuts.y === (expectedDonuts.y || 0);
+            
+            if (isCorrect) {
+                showCheckResult('tutorial-check', true, "Perfect! 🎉");
+                addXP(10);
+            } else {
+                showCheckResult('tutorial-check', false, `Need ${expectedDonuts.x || 0} pink, ${expectedDonuts.x2 || 0} purple, ${expectedDonuts.y || 0} brown donuts`);
+            }
+        }
+
+        function showCheckResult(buttonId, isCorrect, message) {
+            const button = document.getElementById(buttonId);
+            button.classList.remove('default', 'correct', 'incorrect');
+            
+            if (isCorrect) {
+                button.classList.add('correct');
+                button.textContent = '✅ Correct!';
+            } else {
+                button.classList.add('incorrect');
+                button.textContent = '❌ ' + message;
+            }
+            
+            setTimeout(() => resetCheckButton(buttonId), 3000);
+        }
+
+        function resetCheckButton(buttonId) {
+            const button = document.getElementById(buttonId);
+            button.classList.remove('correct', 'incorrect');
+            button.classList.add('default');
+            button.textContent = 'Check';
+        }
+
+        // Examples generation
+        function generateExamples() {
+            const container = document.getElementById('examples-grid');
+            container.innerHTML = '';
+            
+            examples.forEach((example, index) => {
+                const card = document.createElement('div');
+                card.className = 'example-card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>${example.expression}</h3>
+                        <span class="difficulty ${example.difficulty}">${example.difficulty.charAt(0).toUpperCase() + example.difficulty.slice(1)} (${example.xp} pts)</span>
+                    </div>
+                    <div class="donut-workspace">
+                        <div class="expression-display" id="example-expression-${index}">
+                            ${example.expression}
+                        </div>
+                        
+                        <div class="donut-box" style="transform: scale(0.8);">
+                            <div class="box-lid"></div>
+                            <div class="donut-container" id="example-${index}-donuts"></div>
+                        </div>
+
+                        <div class="donut-controls">
+                            <div class="control-group">
+                                <div class="control-label">Pink (x)</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="donut-btn add-x" onclick="addDonut('example-${index}', 'x')" style="transform: scale(0.8);">+</button>
+                                    <button class="donut-btn remove-x" onclick="removeDonut('example-${index}', 'x')" style="transform: scale(0.8);">−</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">Purple (x²)</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="donut-btn add-x2" onclick="addDonut('example-${index}', 'x2')" style="transform: scale(0.8);">+</button>
+                                    <button class="donut-btn remove-x2" onclick="removeDonut('example-${index}', 'x2')" style="transform: scale(0.8);">−</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">Brown (y)</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="donut-btn add-y" onclick="addDonut('example-${index}', 'y')" style="transform: scale(0.8);">+</button>
+                                    <button class="donut-btn remove-y" onclick="removeDonut('example-${index}', 'y')" style="transform: scale(0.8);">−</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="check-btn default" id="example-check-${index}" onclick="checkExample(${index})">
+                            Check
+                        </button>
+                    </div>
+                    <div class="feedback" id="example-feedback-${index}"></div>
+                    <div class="text-center mt-1">
+                        <button class="btn btn-primary" onclick="showExampleHint(${index})">💡 Hint</button>
+                        <button class="btn btn-success" onclick="showExampleSolution(${index})">🎯 Show Answer</button>
+                        <button class="btn btn-warning" onclick="resetExample(${index})">🔄 Reset</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkExample(index) {
+            const example = examples[index];
+            const actualDonuts = countDonuts(`example-${index}`);
+            const expectedDonuts = example.targetDonuts;
+            
+            const isCorrect = actualDonuts.x === (expectedDonuts.x || 0) && 
+                             actualDonuts.x2 === (expectedDonuts.x2 || 0) && 
+                             actualDonuts.y === (expectedDonuts.y || 0);
+            
+            const feedback = document.getElementById(`example-feedback-${index}`);
+            
+            if (isCorrect) {
+                showCheckResult(`example-check-${index}`, true, "Perfect!");
+                feedback.className = 'feedback success show';
+                
+                // Create unique ID for this example
+                const exampleId = `example-${index}`;
+                
+                // Check if this example was already solved
+                if (!solvedProblems.has(exampleId)) {
+                    // First time solving - award XP
+                    feedback.innerHTML = `<strong>🎉 Excellent!</strong> The answer is ${example.answer} <span style="color: #4caf50; font-weight: bold;">+${example.xp} XP</span>`;
+                    addXP(example.xp);
+                    solvedProblems.add(exampleId);
+                    saveSolvedProblems();
+                    console.log(`Example ${exampleId} solved for the first time! +${example.xp} XP`);
+                } else {
+                    // Already solved - no XP
+                    feedback.innerHTML = `<strong>✓ Correct!</strong> The answer is ${example.answer} <span style="color: #666; font-style: italic;">(Already solved)</span>`;
+                    console.log(`Example ${exampleId} already solved - no XP awarded`);
+                }
+            } else {
+                showCheckResult(`example-check-${index}`, false, "Try again");
+                feedback.className = 'feedback error show';
+                feedback.innerHTML = `<strong>Not quite.</strong> Try combining like terms. Need ${expectedDonuts.x || 0} pink, ${expectedDonuts.x2 || 0} purple, and ${expectedDonuts.y || 0} brown donuts.`;
+            }
+        }
+
+        function showExampleHint(index) {
+            const example = examples[index];
+            const feedback = document.getElementById(`example-feedback-${index}`);
+            feedback.className = 'feedback show';
+            feedback.style.background = '#e3f2fd';
+            feedback.style.color = '#1976d2';
+            feedback.style.borderLeft = '5px solid #2196f3';
+            feedback.innerHTML = `<strong>💡 Hint:</strong> ${example.hint}`;
+        }
+
+        function showExampleSolution(index) {
+            const example = examples[index];
+            clearDonuts(`example-${index}`);
+            addInitialDonuts(`example-${index}`, example.targetDonuts);
+            
+            document.getElementById(`example-expression-${index}`).textContent = `${example.expression.split('=')[0]} = ${example.answer}`;
+            
+            const feedback = document.getElementById(`example-feedback-${index}`);
+            feedback.className = 'feedback success show';
+            feedback.innerHTML = `<strong>✅ Solution:</strong> ${example.answer}`;
+        }
+
+        function resetExample(index) {
+            clearDonuts(`example-${index}`);
+            document.getElementById(`example-expression-${index}`).textContent = examples[index].expression;
+            document.getElementById(`example-feedback-${index}`).classList.remove('show');
+            resetCheckButton(`example-check-${index}`);
+        }
+
+        // Worksheet generation
+        function generateWorksheetProblems() {
+            generateProblemSection('easy', worksheetProblems.easy);
+            generateProblemSection('medium', worksheetProblems.medium);
+            generateProblemSection('hard', worksheetProblems.hard);
+        }
+
+        function generateProblemSection(difficulty, problems) {
+            const container = document.getElementById(`${difficulty}-problems`);
+            container.innerHTML = '';
+            
+            problems.forEach((problem, index) => {
+                const problemDiv = document.createElement('div');
+                problemDiv.className = 'problem-card';
+                
+                problemDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4>Problem ${index + 1}: ${problem.expression} = ?</h4>
+                        <span class="difficulty ${difficulty}">${problem.xp} XP</span>
+                        ${solvedProblems.has(`worksheet-${difficulty}-${index}`) ? '<span style="color: #4caf50; font-weight: bold;">✓ Solved</span>' : ''}
+                    </div>
+                    <div class="donut-workspace">
+                        <div class="expression-display" id="problem-expression-${difficulty}-${index}">
+                            ${problem.expression} = ?
+                        </div>
+                        
+                        <div class="donut-box" style="transform: scale(0.7);">
+                            <div class="box-lid"></div>
+                            <div class="donut-container" id="problem-${difficulty}-${index}-donuts"></div>
+                        </div>
+
+                        <div class="donut-controls">
+                            <div class="control-group">
+                                <div class="control-label">Pink (x)</div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="donut-btn add-x" onclick="addDonut('problem-${difficulty}-${index}', 'x')" style="transform: scale(0.7);">+</button>
+                                    <button class="donut-btn remove-x" onclick="removeDonut('problem-${difficulty}-${index}', 'x')" style="transform: scale(0.7);">−</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">Purple (x²)</div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="donut-btn add-x2" onclick="addDonut('problem-${difficulty}-${index}', 'x2')" style="transform: scale(0.7);">+</button>
+                                    <button class="donut-btn remove-x2" onclick="removeDonut('problem-${difficulty}-${index}', 'x2')" style="transform: scale(0.7);">−</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <div class="control-label">Brown (y)</div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="donut-btn add-y" onclick="addDonut('problem-${difficulty}-${index}', 'y')" style="transform: scale(0.7);">+</button>
+                                    <button class="donut-btn remove-y" onclick="removeDonut('problem-${difficulty}-${index}', 'y')" style="transform: scale(0.7);">−</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="check-btn default" id="problem-check-${difficulty}-${index}" onclick="checkProblem('${difficulty}', ${index})">
+                            Check
+                        </button>
+                    </div>
+                    <div class="feedback" id="problem-feedback-${difficulty}-${index}"></div>
+                `;
+                container.appendChild(problemDiv);
+            });
+        }
+
+        function checkProblem(difficulty, index) {
+            const problem = worksheetProblems[difficulty][index];
+            const actualDonuts = countDonuts(`problem-${difficulty}-${index}`);
+            const expectedDonuts = problem.targetDonuts;
+            
+            const isCorrect = actualDonuts.x === (expectedDonuts.x || 0) && 
+                             actualDonuts.x2 === (expectedDonuts.x2 || 0) && 
+                             actualDonuts.y === (expectedDonuts.y || 0);
+            
+            const feedback = document.getElementById(`problem-feedback-${difficulty}-${index}`);
+            
+            if (isCorrect) {
+                showCheckResult(`problem-check-${difficulty}-${index}`, true, "Perfect!");
+                feedback.className = 'feedback success show';
+                
+                // Create unique ID for this problem
+                const problemId = `worksheet-${difficulty}-${index}`;
+                
+                // Check if this problem was already solved
+                if (!solvedProblems.has(problemId)) {
+                    // First time solving - award XP
+                    feedback.innerHTML = `<strong>🎉 Excellent!</strong> The answer is ${problem.answer} <span style="color: #4caf50; font-weight: bold;">+${problem.xp} XP</span>`;
+                    addXP(problem.xp);
+                    solvedProblems.add(problemId);
+                    saveSolvedProblems();
+                    console.log(`Problem ${problemId} solved for the first time! +${problem.xp} XP`);
+                } else {
+                    // Already solved - no XP
+                    feedback.innerHTML = `<strong>✓ Correct!</strong> The answer is ${problem.answer} <span style="color: #666; font-style: italic;">(Already solved)</span>`;
+                    console.log(`Problem ${problemId} already solved - no XP awarded`);
+                }
+                
+                problemsCompleted++;
+                updateProgress();
+                
+                // Disable controls
+                const problemCard = feedback.closest('.problem-card');
+                problemCard.style.background = '#e8f5e9';
+                problemCard.style.borderColor = 'var(--success-green)';
+                
+                // Update expression
+                document.getElementById(`problem-expression-${difficulty}-${index}`).textContent = 
+                    `${problem.expression} = ${problem.answer} ✅`;
+            } else {
+                showCheckResult(`problem-check-${difficulty}-${index}`, false, "Try again");
+                feedback.className = 'feedback error show';
+                feedback.innerHTML = `<strong>Not quite.</strong> Remember to combine like terms. The answer should have ${expectedDonuts.x || 0} pink, ${expectedDonuts.x2 || 0} purple, and ${expectedDonuts.y || 0} brown donuts.`;
+            }
+        }
+
+        function addXP(amount) {
+            currentXP += amount;
+            document.getElementById('xp-value').textContent = currentXP;
+            
+            // Add pulse animation
+            const xpDisplay = document.getElementById('xp-display');
+            xpDisplay.classList.add('pulse');
+            setTimeout(() => {
+                xpDisplay.classList.remove('pulse');
+            }, 600);
+            
+            // Check for achievements
+            if (currentXP >= 100 && currentXP - amount < 100) {
+                showAchievement('🏆 Donut Master! 100 XP earned!');
+            } else if (currentXP >= 250 && currentXP - amount < 250) {
+                showAchievement('🌟 Algebra Expert! 250 XP earned!');
+            } else if (currentXP >= 500 && currentXP - amount < 500) {
+                showAchievement('🎖️ Like Terms Champion! 500 XP earned!');
+            }
+        }
+
+        function showAchievement(message) {
+            const achievement = document.createElement('div');
+            achievement.className = 'achievement';
+            achievement.textContent = message;
+            document.body.appendChild(achievement);
+            
+            setTimeout(() => {
+                achievement.remove();
+            }, 3500);
+        }
+
+        function updateProgress() {
+            const percentage = (problemsCompleted / totalProblems) * 100;
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            updateProgressDisplay();
+            
+            // Check for completion
+            if (problemsCompleted === totalProblems) {
+                showAchievement('🎊 Worksheet Complete! You\'re a donut algebra master!');
+            }
+        }
+
+        function updateProgressDisplay() {
+            document.getElementById('progress-text').textContent = 
+                `${problemsCompleted} of ${totalProblems} problems completed`;
+        }
+
+        // Touch support for mobile swipe navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                // Swipe left - next tab
+                const activeTab = document.querySelector('.tab.active');
+                const nextTab = activeTab.nextElementSibling;
+                if (nextTab && nextTab.classList.contains('tab')) {
+                    nextTab.click();
+                }
+            }
+            if (touchEndX > touchStartX + swipeThreshold) {
+                // Swipe right - previous tab
+                const activeTab = document.querySelector('.tab.active');
+                const prevTab = activeTab.previousElementSibling;
+                if (prevTab && prevTab.classList.contains('tab')) {
+                    prevTab.click();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

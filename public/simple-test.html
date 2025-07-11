@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+            border-color: green;
+        }
+        .error {
+            color: red;
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zeyadmath API Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Test Server Connection</h2>
+        <button onclick="testAPI('/api/health', 'GET', null, 'health-result')">Test Health Check</button>
+        <div id="health-result" class="result">Click button to test...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test Login (No Form Submission)</h2>
+        <button onclick="testLoginDirect()">Test Login API Directly</button>
+        <div id="login-result" class="result">Click button to test...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Check Stored Token</h2>
+        <button onclick="checkToken()">Check Auth Token</button>
+        <div id="token-result" class="result">Click button to check...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <button onclick="goToAuth()">Go to Login Page</button>
+        <button onclick="goToDashboard()">Go to Dashboard</button>
+        <button onclick="goToHome()">Go to Home</button>
+    </div>
+
+    <script>
+        // Simple API test function
+        async function testAPI(endpoint, method, body, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = `Testing ${endpoint}...`;
+            resultDiv.className = 'result';
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                console.log(`Calling ${method} ${endpoint}`);
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+                
+                resultDiv.textContent = `Status: ${response.status}\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                resultDiv.className = response.ok ? 'result success' : 'result error';
+                
+                return { response, data };
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.textContent = `ERROR: ${error.message}\n\nThis usually means:\n- The server is not running\n- You're using HTTPS instead of HTTP\n- There's a network issue`;
+                resultDiv.className = 'result error';
+                return null;
+            }
+        }
+        
+        // Direct login test
+        async function testLoginDirect() {
+            console.log('Testing login...');
+            const result = await testAPI('/api/auth/login', 'POST', {
+                email: 'demo@zeyadmath.com',
+                password: 'demo123'
+            }, 'login-result');
+            
+            if (result && result.response.ok) {
+                console.log('Login successful! Token:', result.data.token);
+                localStorage.setItem('authToken', result.data.token);
+                localStorage.setItem('userData', JSON.stringify(result.data.user));
+                
+                document.getElementById('login-result').innerHTML += '\n\n✅ Token saved! You can now go to the dashboard.';
+            }
+        }
+        
+        // Check token
+        function checkToken() {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            
+            const resultDiv = document.getElementById('token-result');
+            if (token) {
+                resultDiv.textContent = `Token found: ${token.substring(0, 20)}...\n\nUser Data:\n${userData}`;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.textContent = 'No token found. Please login first.';
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // Navigation functions
+        function goToAuth() {
+            window.location.href = '/auth.html';
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+        
+        function goToHome() {
+            window.location.href = '/index.html';
+        }
+        
+        // Show current URL
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Current URL:', window.location.href);
+            console.log('Make sure you are using HTTP, not HTTPS!');
+            
+            if (window.location.protocol === 'https:') {
+                alert('You are using HTTPS! Please use HTTP instead:\nhttp://localhost:3000/simple-test.html');
+            }
+        });
+    </script>
+</body>
+</html>

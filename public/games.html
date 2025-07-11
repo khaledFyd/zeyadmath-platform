@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - Zeyadmath Learning Platform</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Fredoka', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-icon {
+            font-size: 4em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-title {
+            font-size: 1.8em;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .game-description {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .xp-requirement {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .play-button {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .play-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .play-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .game-card.locked:hover .locked-overlay {
+            opacity: 1;
+        }
+        
+        .lock-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .xp-progress {
+            width: 200px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+        
+        .auth-message {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 50px auto;
+        }
+        
+        .auth-message h2 {
+            color: #e53e3e;
+            margin-bottom: 20px;
+        }
+        
+        .auth-message p {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .auth-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">← Back to Learning</a>
+        
+        <h1>🎮 Math Games</h1>
+        <p class="subtitle">Use your XP to play educational games!</p>
+        
+        <div id="authMessage" class="auth-message" style="display: none;">
+            <h2>🔒 Login Required</h2>
+            <p>Please login or register to access the games!</p>
+            <a href="/login.html" class="auth-button">Login / Register</a>
+        </div>
+        
+        <div id="gamesContainer" class="games-grid" style="display: none;">
+            <div class="game-card" id="towerDefenseCard">
+                <div class="game-icon">🏰</div>
+                <h2 class="game-title">Tower Defense</h2>
+                <p class="game-description">
+                    Defend your base from waves of enemies! Use your XP as coins to build towers.
+                    No coins from defeating enemies - only your earned XP counts!
+                </p>
+                <div class="xp-requirement">Requires: 100 XP</div>
+                <button class="play-button" onclick="playTowerDefense()">Play Now</button>
+                <div class="locked-overlay">
+                    <div class="lock-icon">🔒</div>
+                    <p>Need more XP!</p>
+                    <div class="xp-progress">
+                        <div class="xp-bar" id="tdXpBar"></div>
+                    </div>
+                    <p id="tdXpText">0/100 XP</p>
+                </div>
+            </div>
+            
+            <!-- More games can be added here -->
+        </div>
+    </div>
+    
+    <script>
+        let userXP = 0;
+        
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                document.getElementById('authMessage').style.display = 'block';
+                document.getElementById('gamesContainer').style.display = 'none';
+                return false;
+            }
+            
+            try {
+                const response = await fetch('/api/progress/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user stats');
+                }
+                
+                const data = await response.json();
+                userXP = data.totalXP || 0;
+                
+                document.getElementById('authMessage').style.display = 'none';
+                document.getElementById('gamesContainer').style.display = 'grid';
+                
+                updateGameCards();
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                document.getElementById('authMessage').style.display = 'block';
+                document.getElementById('gamesContainer').style.display = 'none';
+                return false;
+            }
+        }
+        
+        function updateGameCards() {
+            // Tower Defense
+            const tdCard = document.getElementById('towerDefenseCard');
+            const tdButton = tdCard.querySelector('.play-button');
+            const tdXpBar = document.getElementById('tdXpBar');
+            const tdXpText = document.getElementById('tdXpText');
+            
+            if (userXP >= 100) {
+                tdCard.classList.remove('locked');
+                tdButton.disabled = false;
+                tdButton.textContent = 'Play Now';
+            } else {
+                tdCard.classList.add('locked');
+                tdButton.disabled = true;
+                tdButton.textContent = 'Locked';
+                
+                const progress = (userXP / 100) * 100;
+                tdXpBar.style.width = progress + '%';
+                tdXpText.textContent = `${userXP}/100 XP`;
+            }
+        }
+        
+        async function playTowerDefense() {
+            if (userXP < 100) {
+                alert('You need at least 100 XP to play this game!');
+                return;
+            }
+            
+            // Navigate to the game
+            window.location.href = '/api/games/tower-defense';
+        }
+        
+        // Check authentication on page load
+        window.addEventListener('load', checkAuth);
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    
+    <h2>1. Test Server Connection</h2>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    
+    <h2>2. Test Login</h2>
+    <button onclick="testLogin()">Test Login with Demo Account</button>
+    
+    <h2>3. Manual Login Test</h2>
+    <form onsubmit="manualLogin(event)">
+        <input type="email" id="email" placeholder="Email" value="demo@zeyadmath.com" required><br>
+        <input type="password" id="password" placeholder="Password" value="demo123" required><br>
+        <button type="submit">Manual Login</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+        
+        function showResult(message, isError = false) {
+            resultDiv.innerHTML = message;
+            resultDiv.className = isError ? 'error' : 'success';
+        }
+        
+        async function testHealth() {
+            try {
+                showResult('Testing health endpoint...');
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                showResult('Health Check Response:\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                showResult('Error: ' + error.message, true);
+            }
+        }
+        
+        async function testLogin() {
+            try {
+                showResult('Testing login endpoint...');
+                console.log('Sending login request...');
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@zeyadmath.com',
+                        password: 'demo123'
+                    })
+                });
+                
+                console.log('Response received:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    showResult('Login Successful!\n' + JSON.stringify(data, null, 2));
+                    localStorage.setItem('authToken', data.token);
+                } else {
+                    showResult('Login Failed:\n' + JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResult('Network Error: ' + error.message + '\n\nMake sure the server is running!', true);
+                console.error('Full error:', error);
+            }
+        }
+        
+        async function manualLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                showResult('Attempting manual login...');
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('Manual Login Successful!\n' + JSON.stringify(data, null, 2));
+                    localStorage.setItem('authToken', data.token);
+                    
+                    // Try to redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 2000);
+                } else {
+                    showResult('Manual Login Failed:\n' + JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                showResult('Error: ' + error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>

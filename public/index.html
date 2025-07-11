@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeyadmath Learning Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #ffb3d1 0%, #fff8dc 50%, #ffb3d1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff6b9d;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .link-button {
+            background: #ff6b9d;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+        }
+
+        .link-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
+        }
+
+        .link-button.secondary {
+            background: #8d4e2a;
+        }
+
+        .link-button.secondary:hover {
+            box-shadow: 0 10px 20px rgba(141, 78, 42, 0.3);
+        }
+
+        .mascot {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="mascot">🐘</div>
+        <h1>Welcome to Zeyadmath!</h1>
+        <p>An interactive math learning platform designed to make mathematics fun and engaging for students of all levels.</p>
+        
+        <div class="links">
+            <a href="/auth-fixed.html" class="link-button">Login / Sign Up</a>
+            <a href="/dashboard.html" class="link-button secondary">Go to Dashboard</a>
+            <a href="/games.html" class="link-button" style="background: #4CAF50;">🎮 Play Games</a>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h3 style="color: #666; margin-bottom: 15px;">Available Lessons:</h3>
+            <div class="links">
+                <a href="/lessons/donut-algebra" class="link-button" style="font-size: 1rem;">🍩 Donut Algebra</a>
+                <a href="/lessons/algebra-balance" class="link-button secondary" style="font-size: 1rem;">⚖️ Algebra Balance</a>
+                <a href="/lessons/enhanced-algebra-balance" class="link-button" style="font-size: 1rem; background: #9370DB;">⚖️ Advanced Balance</a>
+            </div>
+        </div>
+
+        <div class="status">
+            <span class="status-indicator"></span>
+            <strong>Platform Status:</strong> In Development
+            <br><br>
+            <small>API Health: <span id="api-status">Checking...</span></small>
+        </div>
+    </div>
+
+    <script>
+        // Check API health
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('api-status').textContent = 
+                    data.success ? 'Online ✓' : 'Offline ✗';
+            })
+            .catch(() => {
+                document.getElementById('api-status').textContent = 'Offline ✗';
+            });
+    </script>
+</body>
+</html>
