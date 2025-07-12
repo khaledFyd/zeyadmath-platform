@@ -94,9 +94,11 @@ const register = async (req, res) => {
       });
     }
     
+    console.error('Registration error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Error registering user. Please try again later.' 
+      error: 'Error registering user. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -213,7 +215,8 @@ const login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Error logging in. Please try again later.' 
+      error: 'Error logging in. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

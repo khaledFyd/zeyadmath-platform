@@ -22,12 +22,10 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('PostgreSQL Connected Successfully');
 
-    // Sync models in development
-    // Temporarily disable sync to test server startup
-    // if (env === 'development') {
-    //   await sequelize.sync({ alter: true });
-    //   console.log('Database synced');
-    // }
+    // Sync models - create tables if they don't exist
+    // Using force: false to avoid dropping existing tables
+    await sequelize.sync({ force: false });
+    console.log('Database synced - tables created if not exist');
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
