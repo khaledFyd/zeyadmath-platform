@@ -9,40 +9,45 @@ const registerValidation = [
   body('username')
     .trim()
     .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
+    .withMessage('Username must be between 3 and 30 characters. Example: john_doe, student123, math_lover')
     .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores'),
+    .withMessage('Username can only contain letters, numbers, and underscores. Example: john_doe ✓, john.doe ✗, john@doe ✗'),
   body('email')
     .trim()
     .isEmail()
-    .withMessage('Please provide a valid email')
+    .withMessage('Please provide a valid email address. Example: student@example.com, john.doe@school.edu')
     .normalizeEmail(),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+    .withMessage('Password must be at least 6 characters long. Example: math123, secure456')
     .matches(/\d/)
-    .withMessage('Password must contain at least one number')
+    .withMessage('Password must contain at least one number. Example: password1 ✓, password ✗')
 ];
 
 const loginValidation = [
+  body('emailOrUsername')
+    .optional({ checkFalsy: true })
+    .trim(),
   body('email')
-    .optional()
-    .trim()
-    .isEmail()
-    .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .optional({ checkFalsy: true })
+    .trim(),
   body('username')
-    .optional()
-    .trim()
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters'),
+    .optional({ checkFalsy: true })
+    .trim(),
   body('password')
     .notEmpty()
-    .withMessage('Password is required'),
+    .withMessage('Password is required. Please enter your password.')
+    .isLength({ min: 1 })
+    .withMessage('Password cannot be empty'),
   body()
     .custom((value, { req }) => {
-      if (!req.body.email && !req.body.username) {
-        throw new Error('Email or username is required');
+      // Check if at least one login identifier is provided
+      const hasEmailOrUsername = req.body.emailOrUsername && req.body.emailOrUsername.trim().length > 0;
+      const hasEmail = req.body.email && req.body.email.trim().length > 0;
+      const hasUsername = req.body.username && req.body.username.trim().length > 0;
+      
+      if (!hasEmailOrUsername && !hasEmail && !hasUsername) {
+        throw new Error('Please enter your email or username to login. Example: demo@zeyadmath.com or demo_student');
       }
       return true;
     })

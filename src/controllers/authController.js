@@ -8,9 +8,17 @@ const register = async (req, res) => {
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // Format errors for better frontend display
+      const formattedErrors = {};
+      errors.array().forEach(error => {
+        formattedErrors[error.path] = error.msg;
+      });
+      
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array(),
+        fieldErrors: formattedErrors,
+        message: 'Please correct the following errors' 
       });
     }
 
@@ -59,9 +67,36 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle specific database errors
+    if (error.name === 'SequelizeValidationError') {
+      const fieldErrors = {};
+      error.errors.forEach(err => {
+        fieldErrors[err.path] = err.message;
+      });
+      
+      return res.status(400).json({ 
+        success: false, 
+        fieldErrors,
+        message: 'Validation failed',
+        error: 'Please check your input and try again' 
+      });
+    }
+    
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const field = error.errors[0].path;
+      return res.status(400).json({ 
+        success: false, 
+        fieldErrors: {
+          [field]: `This ${field} is already taken`
+        },
+        error: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` 
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
-      error: 'Error registering user' 
+      error: 'Error registering user. Please try again later.' 
     });
   }
 };
@@ -69,24 +104,57 @@ const register = async (req, res) => {
 // Login user
 const login = async (req, res) => {
   try {
+    console.log('Login request body:', req.body); // Debug log
+    
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array()); // Debug log
+      
+      // Format errors for better frontend display
+      const formattedErrors = {};
+      errors.array().forEach(error => {
+        formattedErrors[error.path] = error.msg;
+      });
+      
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array(),
+        fieldErrors: formattedErrors,
+        message: 'Please correct the following errors' 
       });
     }
 
-    const { email, username, password } = req.body;
+    const { email, username, emailOrUsername, password } = req.body;
 
-    // Find user by email or username - accept either one
-    const loginIdentifier = email || username;
+    // Handle flexible login identifier
+    let loginIdentifier = email || username || emailOrUsername;
     if (!loginIdentifier) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Email or username is required' 
+        error: 'Please provide your email or username to login' 
       });
+    }
+
+    // Auto-create demo user if trying to login with demo credentials
+    const allowDemoAutoCreate = process.env.ALLOW_DEMO_AUTO_CREATE !== 'false'; // Default to true
+    
+    if (allowDemoAutoCreate && (loginIdentifier === 'demo@zeyadmath.com' || loginIdentifier === 'demo_student') && password === 'demo123') {
+      let demoUser = await User.findOne({ 
+        where: { email: 'demo@zeyadmath.com' } 
+      });
+      
+      if (!demoUser) {
+        console.log('Demo user not found, creating...');
+        demoUser = await User.create({
+          username: 'demo_student',
+          email: 'demo@zeyadmath.com',
+          password: 'demo123',
+          xp: 100,
+          level: 2
+        });
+        console.log('Demo user created successfully');
+      }
     }
 
     // Check if loginIdentifier is an email or username
@@ -100,7 +168,10 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({ 
         success: false, 
-        error: 'Invalid credentials' 
+        error: 'Invalid credentials. Please check your email/username and password.',
+        fieldErrors: {
+          emailOrUsername: 'No account found with this email or username'
+        }
       });
     }
 
@@ -110,7 +181,10 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ 
         success: false, 
-        error: 'Invalid credentials' 
+        error: 'Invalid credentials. Please check your email/username and password.',
+        fieldErrors: {
+          password: 'Incorrect password'
+        }
       });
     }
 
@@ -139,7 +213,7 @@ const login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Error logging in' 
+      error: 'Error logging in. Please try again later.' 
     });
   }
 };
@@ -186,9 +260,17 @@ const updateProfile = async (req, res) => {
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // Format errors for better frontend display
+      const formattedErrors = {};
+      errors.array().forEach(error => {
+        formattedErrors[error.path] = error.msg;
+      });
+      
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array(),
+        fieldErrors: formattedErrors,
+        message: 'Please correct the following errors' 
       });
     }
 
@@ -260,9 +342,17 @@ const changePassword = async (req, res) => {
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // Format errors for better frontend display
+      const formattedErrors = {};
+      errors.array().forEach(error => {
+        formattedErrors[error.path] = error.msg;
+      });
+      
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array(),
+        fieldErrors: formattedErrors,
+        message: 'Please correct the following errors' 
       });
     }
 

@@ -111,6 +111,276 @@
             50% { opacity: 0.5; }
             100% { opacity: 1; }
         }
+
+        .status-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .status-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .status-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .status-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 2rem;
+            color: #999;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-button:hover {
+            color: #666;
+        }
+
+        .status-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .status-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .status-value {
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .status-error {
+            color: #f44336;
+        }
+
+        .status-success {
+            color: #4caf50;
+        }
+
+        .diagnostics-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #9C27B0;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diagnostics-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+        }
+
+        .diagnostics-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .diagnostics-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .diagnostics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .diagnostics-title {
+            font-size: 1.8rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .health-indicator.healthy {
+            background: #4caf50;
+        }
+
+        .health-indicator.unhealthy {
+            background: #f44336;
+        }
+
+        .diagnostics-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 4px solid #9C27B0;
+        }
+
+        .diagnostics-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .diagnostic-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .diagnostic-item:last-child {
+            border-bottom: none;
+        }
+
+        .diagnostic-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .diagnostic-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .diagnostic-value.success {
+            color: #4caf50;
+        }
+
+        .diagnostic-value.error {
+            color: #f44336;
+        }
+
+        .diagnostic-value.warning {
+            color: #ff9800;
+        }
+
+        .user-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .refresh-button {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: #7B1FA2;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(156, 39, 176, 0.3);
+            border-radius: 50%;
+            border-top-color: #9C27B0;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -120,7 +390,7 @@
         <p>An interactive math learning platform designed to make mathematics fun and engaging for students of all levels.</p>
         
         <div class="links">
-            <a href="/auth-fixed.html" class="link-button">Login / Sign Up</a>
+            <a href="/auth.html" class="link-button">Login / Sign Up</a>
             <a href="/dashboard.html" class="link-button secondary">Go to Dashboard</a>
             <a href="/games.html" class="link-button" style="background: #4CAF50;">🎮 Play Games</a>
         </div>
@@ -142,6 +412,249 @@
         </div>
     </div>
 
+    <!-- Site Status Button (Demo User Only) -->
+    <button class="status-button" id="statusButton" onclick="showSiteStatus()">
+        🔧 Site Status
+    </button>
+
+    <!-- Diagnostics Button (Available to all users) -->
+    <button class="diagnostics-button" onclick="showDiagnostics()">
+        <span>🔍</span>
+        <span>Diagnostics</span>
+    </button>
+
+    <!-- Site Status Modal -->
+    <div class="status-modal" id="statusModal">
+        <div class="status-content">
+            <button class="close-button" onclick="closeSiteStatus()">&times;</button>
+            <h2 style="color: #333; margin-bottom: 20px;">🔧 Site Status Dashboard</h2>
+            
+            <div id="statusLoading" style="text-align: center; padding: 40px;">
+                <div style="font-size: 3rem;">⏳</div>
+                <p>Loading site status...</p>
+            </div>
+            
+            <div id="statusData" style="display: none;">
+                <!-- Server Status -->
+                <div class="status-section">
+                    <h3>🖥️ Server Status</h3>
+                    <div class="status-item">
+                        <span>Status:</span>
+                        <span class="status-value status-success" id="serverStatus">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Uptime:</span>
+                        <span class="status-value" id="serverUptime">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Node Version:</span>
+                        <span class="status-value" id="nodeVersion">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Memory Usage:</span>
+                        <span class="status-value" id="memoryUsage">-</span>
+                    </div>
+                </div>
+                
+                <!-- Database Status -->
+                <div class="status-section">
+                    <h3>🗄️ Database Status</h3>
+                    <div class="status-item">
+                        <span>Status:</span>
+                        <span class="status-value" id="dbStatus">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Latency:</span>
+                        <span class="status-value" id="dbLatency">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Type:</span>
+                        <span class="status-value" id="dbType">-</span>
+                    </div>
+                </div>
+                
+                <!-- User Statistics -->
+                <div class="status-section">
+                    <h3>👥 User Statistics</h3>
+                    <div class="status-item">
+                        <span>Total Registered:</span>
+                        <span class="status-value" id="totalUsers">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Active Now (30min):</span>
+                        <span class="status-value" id="activeUsers">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Demo User Active:</span>
+                        <span class="status-value status-success">✓</span>
+                    </div>
+                </div>
+                
+                <!-- Platform Statistics -->
+                <div class="status-section">
+                    <h3>📊 Platform Statistics</h3>
+                    <div class="status-item">
+                        <span>Unique Learners:</span>
+                        <span class="status-value" id="uniqueLearners">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Total Activities:</span>
+                        <span class="status-value" id="totalActivities">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Total XP Earned:</span>
+                        <span class="status-value" id="totalXP">-</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">
+                    <p>Last updated: <span id="lastUpdated">-</span></p>
+                    <button onclick="refreshStatus()" style="margin-top: 10px; padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div id="statusError" style="display: none; text-align: center; padding: 40px;">
+                <div style="font-size: 3rem;">❌</div>
+                <p style="color: #f44336; margin-top: 10px;">Failed to load site status</p>
+                <p id="errorMessage" style="color: #666; font-size: 0.9rem; margin-top: 10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostics Modal -->
+    <div class="diagnostics-modal" id="diagnosticsModal">
+        <div class="diagnostics-content">
+            <div class="diagnostics-header">
+                <h2 class="diagnostics-title">
+                    🔍 System Diagnostics
+                    <span class="health-indicator" id="healthIndicator"></span>
+                </h2>
+                <button class="close-button" onclick="closeDiagnostics()">&times;</button>
+            </div>
+            
+            <div id="diagnosticsLoading" style="text-align: center; padding: 40px;">
+                <div class="loading-spinner"></div>
+                <p>Running diagnostics...</p>
+            </div>
+            
+            <div id="diagnosticsData" style="display: none;">
+                <!-- Server Status -->
+                <div class="diagnostics-section">
+                    <h3>🖥️ Server Status</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Status:</span>
+                        <span class="diagnostic-value success" id="diagServerStatus">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Uptime:</span>
+                        <span class="diagnostic-value" id="diagUptime">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Node Version:</span>
+                        <span class="diagnostic-value" id="diagNodeVersion">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Memory Usage:</span>
+                        <span class="diagnostic-value" id="diagMemory">-</span>
+                    </div>
+                </div>
+                
+                <!-- Database Status -->
+                <div class="diagnostics-section">
+                    <h3>🗄️ Database Health</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Status:</span>
+                        <span class="diagnostic-value" id="diagDbStatus">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Total Latency:</span>
+                        <span class="diagnostic-value" id="diagDbLatency">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Write Operation:</span>
+                        <span class="diagnostic-value" id="diagDbWrite">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Read Operation:</span>
+                        <span class="diagnostic-value" id="diagDbRead">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Delete Operation:</span>
+                        <span class="diagnostic-value" id="diagDbDelete">-</span>
+                    </div>
+                </div>
+                
+                <!-- User Statistics -->
+                <div class="diagnostics-section">
+                    <h3>👥 User Activity</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Total Users:</span>
+                        <span class="diagnostic-value" id="diagTotalUsers">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Active Now (30min):</span>
+                        <span class="diagnostic-value" id="diagActiveUsers">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">New Today:</span>
+                        <span class="diagnostic-value" id="diagNewUsers">-</span>
+                    </div>
+                    <div id="recentUsersSection" style="display: none;">
+                        <div class="diagnostic-item">
+                            <span class="diagnostic-label">Recently Active:</span>
+                        </div>
+                        <div class="user-list" id="diagRecentUsers"></div>
+                    </div>
+                </div>
+                
+                <!-- System Info -->
+                <div class="diagnostics-section">
+                    <h3>⚙️ System Information</h3>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Platform:</span>
+                        <span class="diagnostic-value" id="diagPlatform">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Architecture:</span>
+                        <span class="diagnostic-value" id="diagArch">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">CPUs:</span>
+                        <span class="diagnostic-value" id="diagCpus">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Total Memory:</span>
+                        <span class="diagnostic-value" id="diagTotalMemory">-</span>
+                    </div>
+                    <div class="diagnostic-item">
+                        <span class="diagnostic-label">Free Memory:</span>
+                        <span class="diagnostic-value" id="diagFreeMemory">-</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="color: #666; font-size: 0.9rem;">
+                        Last updated: <span id="diagLastUpdated">-</span>
+                    </p>
+                    <button class="refresh-button" onclick="refreshDiagnostics()">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div id="diagnosticsError" style="display: none; text-align: center; padding: 40px;">
+                <div style="font-size: 3rem;">❌</div>
+                <p style="color: #f44336; margin-top: 10px;">Failed to load diagnostics</p>
+                <p id="diagErrorMessage" style="color: #666; font-size: 0.9rem; margin-top: 10px;"></p>
+                <button class="refresh-button" onclick="refreshDiagnostics()" style="margin-top: 20px;">
+                    🔄 Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Check API health
         fetch('/api/health')
@@ -153,6 +666,257 @@
             .catch(() => {
                 document.getElementById('api-status').textContent = 'Offline ✗';
             });
+
+        // Check if user is demo user
+        function checkDemoUser() {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (user.email === 'demo@zeyadmath.com') {
+                        document.getElementById('statusButton').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+
+        // Show site status modal
+        function showSiteStatus() {
+            document.getElementById('statusModal').style.display = 'flex';
+            fetchSiteStatus();
+        }
+
+        // Close site status modal
+        function closeSiteStatus() {
+            document.getElementById('statusModal').style.display = 'none';
+        }
+
+        // Fetch site status data
+        async function fetchSiteStatus() {
+            const token = localStorage.getItem('authToken');
+            
+            document.getElementById('statusLoading').style.display = 'block';
+            document.getElementById('statusData').style.display = 'none';
+            document.getElementById('statusError').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/status/site', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    displayStatusData(data.status);
+                } else {
+                    throw new Error(data.error || 'Failed to fetch status');
+                }
+            } catch (error) {
+                document.getElementById('statusLoading').style.display = 'none';
+                document.getElementById('statusError').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            }
+        }
+
+        // Display status data
+        function displayStatusData(status) {
+            document.getElementById('statusLoading').style.display = 'none';
+            document.getElementById('statusData').style.display = 'block';
+            
+            // Server Status
+            document.getElementById('serverStatus').textContent = status.server;
+            document.getElementById('serverUptime').textContent = formatUptime(status.uptime);
+            document.getElementById('nodeVersion').textContent = status.nodeVersion;
+            document.getElementById('memoryUsage').textContent = formatMemory(status.memory.heapUsed);
+            
+            // Database Status
+            const dbStatusEl = document.getElementById('dbStatus');
+            dbStatusEl.textContent = status.database.status;
+            dbStatusEl.className = status.database.status === 'healthy' ? 'status-value status-success' : 'status-value status-error';
+            document.getElementById('dbLatency').textContent = status.database.latency;
+            document.getElementById('dbType').textContent = status.database.type;
+            
+            // User Statistics
+            document.getElementById('totalUsers').textContent = status.users.totalRegistered;
+            document.getElementById('activeUsers').textContent = status.users.activeNow;
+            
+            // Platform Statistics
+            document.getElementById('uniqueLearners').textContent = status.platformStats.uniqueLearners;
+            document.getElementById('totalActivities').textContent = status.platformStats.totalActivities;
+            document.getElementById('totalXP').textContent = status.platformStats.totalXPEarned + ' XP';
+            
+            // Last updated
+            document.getElementById('lastUpdated').textContent = new Date(status.timestamp).toLocaleString();
+        }
+
+        // Format uptime
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (days > 0) {
+                return `${days}d ${hours}h ${minutes}m`;
+            } else if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else {
+                return `${minutes}m`;
+            }
+        }
+
+        // Format memory
+        function formatMemory(bytes) {
+            const mb = (bytes / 1024 / 1024).toFixed(1);
+            return `${mb} MB`;
+        }
+
+        // Refresh status
+        function refreshStatus() {
+            fetchSiteStatus();
+        }
+
+        // Close modal on background click
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSiteStatus();
+            }
+        });
+
+        // Check demo user on load
+        window.addEventListener('load', checkDemoUser);
+
+        // Diagnostics Functions
+        function showDiagnostics() {
+            document.getElementById('diagnosticsModal').style.display = 'flex';
+            fetchDiagnostics();
+        }
+
+        function closeDiagnostics() {
+            document.getElementById('diagnosticsModal').style.display = 'none';
+        }
+
+        function refreshDiagnostics() {
+            fetchDiagnostics();
+        }
+
+        async function fetchDiagnostics() {
+            document.getElementById('diagnosticsLoading').style.display = 'block';
+            document.getElementById('diagnosticsData').style.display = 'none';
+            document.getElementById('diagnosticsError').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/diagnostics/system');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    displayDiagnostics(data.diagnostics);
+                } else {
+                    throw new Error(data.error || 'Failed to fetch diagnostics');
+                }
+            } catch (error) {
+                document.getElementById('diagnosticsLoading').style.display = 'none';
+                document.getElementById('diagnosticsError').style.display = 'block';
+                document.getElementById('diagErrorMessage').textContent = error.message;
+            }
+        }
+
+        function displayDiagnostics(diagnostics) {
+            document.getElementById('diagnosticsLoading').style.display = 'none';
+            document.getElementById('diagnosticsData').style.display = 'block';
+            
+            // Overall health
+            const healthIndicator = document.getElementById('healthIndicator');
+            healthIndicator.className = diagnostics.overall?.healthy ? 'health-indicator healthy' : 'health-indicator unhealthy';
+            
+            // Server Status
+            document.getElementById('diagServerStatus').textContent = diagnostics.server?.status || '-';
+            document.getElementById('diagUptime').textContent = formatUptime(diagnostics.server?.uptime || 0);
+            document.getElementById('diagNodeVersion').textContent = diagnostics.server?.nodeVersion || '-';
+            document.getElementById('diagMemory').textContent = diagnostics.server?.memory?.used || '-';
+            
+            // Database Status
+            const dbStatusEl = document.getElementById('diagDbStatus');
+            dbStatusEl.textContent = diagnostics.database?.status || '-';
+            dbStatusEl.className = diagnostics.database?.status === 'healthy' ? 'diagnostic-value success' : 'diagnostic-value error';
+            
+            document.getElementById('diagDbLatency').textContent = diagnostics.database?.latency || '-';
+            
+            if (diagnostics.database?.operations) {
+                const ops = diagnostics.database.operations;
+                document.getElementById('diagDbWrite').textContent = ops.write ? `${ops.write}ms` : 'Failed';
+                document.getElementById('diagDbRead').textContent = ops.read ? `${ops.read}ms` : 'Failed';
+                document.getElementById('diagDbDelete').textContent = ops.delete ? `${ops.delete}ms` : 'Failed';
+                
+                // Color code based on performance
+                ['diagDbWrite', 'diagDbRead', 'diagDbDelete'].forEach(id => {
+                    const el = document.getElementById(id);
+                    const value = parseInt(el.textContent);
+                    if (!isNaN(value)) {
+                        el.className = value < 50 ? 'diagnostic-value success' : 
+                                      value < 200 ? 'diagnostic-value warning' : 
+                                      'diagnostic-value error';
+                    } else {
+                        el.className = 'diagnostic-value error';
+                    }
+                });
+            }
+            
+            // User Statistics
+            document.getElementById('diagTotalUsers').textContent = diagnostics.users?.total || '0';
+            document.getElementById('diagActiveUsers').textContent = diagnostics.users?.activeNow || '0';
+            document.getElementById('diagNewUsers').textContent = diagnostics.users?.newToday || '0';
+            
+            // Recent users
+            if (diagnostics.users?.recentlyActive && diagnostics.users.recentlyActive.length > 0) {
+                document.getElementById('recentUsersSection').style.display = 'block';
+                const usersList = document.getElementById('diagRecentUsers');
+                usersList.innerHTML = diagnostics.users.recentlyActive.map(user => `
+                    <div class="user-item">
+                        <span>${user.username}</span>
+                        <span>${formatTimestamp(user.lastSeen)}</span>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('recentUsersSection').style.display = 'none';
+            }
+            
+            // System Info
+            document.getElementById('diagPlatform').textContent = diagnostics.system?.platform || '-';
+            document.getElementById('diagArch').textContent = diagnostics.system?.arch || '-';
+            document.getElementById('diagCpus').textContent = diagnostics.system?.cpus || '-';
+            document.getElementById('diagTotalMemory').textContent = diagnostics.system?.totalMemory || '-';
+            document.getElementById('diagFreeMemory').textContent = diagnostics.system?.freeMemory || '-';
+            
+            // Last updated
+            document.getElementById('diagLastUpdated').textContent = new Date(diagnostics.timestamp).toLocaleString();
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) {
+                return 'Just now';
+            } else if (diff < 3600000) {
+                return `${Math.floor(diff / 60000)}m ago`;
+            } else {
+                return date.toLocaleTimeString();
+            }
+        }
+
+        // Close modal on background click
+        document.getElementById('diagnosticsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDiagnostics();
+            }
+        });
     </script>
 </body>
 </html>

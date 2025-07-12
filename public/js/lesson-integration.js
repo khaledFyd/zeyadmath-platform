@@ -76,7 +76,7 @@ class LessonIntegration {
                         <span class="user-xp">🏆 ${this.userData.totalXP || 0} XP</span>
                         <span class="user-level">Level ${this.userData.level || 1}</span>
                     ` : `
-                        <a href="/auth-fixed.html" class="login-link">Login to save progress</a>
+                        <a href="/auth.html" class="login-link">Login to save progress</a>
                     `}
                 </div>
             </div>

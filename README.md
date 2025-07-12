@@ -65,14 +65,15 @@ An interactive mathematics learning platform designed to teach math concepts thr
    NODE_ENV=development
    ```
 
-5. **Seed the database (optional)**
+5. **Demo Account**
+   The demo account is automatically created when the server starts:
+   - Email: `demo@zeyadmath.com`
+   - Password: `demo123`
+   
+   You can also manually seed the database with sample lessons:
    ```bash
    npm run seed
    ```
-   
-   This creates sample lessons and a demo user:
-   - Email: `demo@zeyadmath.com`
-   - Password: `demo123`
 
 6. **Start the development server**
    ```bash

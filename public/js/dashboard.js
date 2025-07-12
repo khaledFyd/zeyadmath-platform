@@ -518,3 +518,228 @@ function showNotification(message, type = 'info') {
     // For now, just use alert
     alert(message);
 }
+
+// Diagnostics Functions
+function showDiagnostics() {
+    document.getElementById('diagnosticsModal').style.display = 'flex';
+    fetchDiagnostics();
+}
+
+function closeDiagnostics() {
+    document.getElementById('diagnosticsModal').style.display = 'none';
+}
+
+function refreshDiagnostics() {
+    fetchDiagnostics();
+}
+
+async function fetchDiagnostics() {
+    document.getElementById('diagnosticsLoading').style.display = 'block';
+    document.getElementById('diagnosticsData').style.display = 'none';
+    document.getElementById('diagnosticsError').style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/diagnostics/system');
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            displayDiagnostics(data.diagnostics);
+        } else {
+            throw new Error(data.error || 'Failed to fetch diagnostics');
+        }
+    } catch (error) {
+        document.getElementById('diagnosticsLoading').style.display = 'none';
+        document.getElementById('diagnosticsError').style.display = 'block';
+        document.getElementById('diagErrorMessage').textContent = error.message;
+    }
+}
+
+function displayDiagnostics(diagnostics) {
+    document.getElementById('diagnosticsLoading').style.display = 'none';
+    document.getElementById('diagnosticsData').style.display = 'block';
+    
+    // Overall health
+    const healthIndicator = document.getElementById('healthIndicator');
+    healthIndicator.style.background = diagnostics.overall?.healthy ? '#4caf50' : '#f44336';
+    
+    // Build the diagnostics HTML
+    let html = `
+        <!-- Server Status -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f5f5f5; border-radius: 10px; border-left: 4px solid #9C27B0;">
+            <h3 style="color: #333; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                🖥️ Server Status
+            </h3>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Status:</span>
+                <span style="font-weight: bold; color: #4caf50;">${diagnostics.server?.status || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Uptime:</span>
+                <span style="font-weight: bold;">${formatUptime(diagnostics.server?.uptime || 0)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Node Version:</span>
+                <span style="font-weight: bold;">${diagnostics.server?.nodeVersion || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0;">
+                <span style="color: #666;">Memory Usage:</span>
+                <span style="font-weight: bold;">${diagnostics.server?.memory?.used || '-'}</span>
+            </div>
+        </div>
+        
+        <!-- Database Status -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f5f5f5; border-radius: 10px; border-left: 4px solid #9C27B0;">
+            <h3 style="color: #333; margin-bottom: 15px;">🗄️ Database Health</h3>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Status:</span>
+                <span style="font-weight: bold; color: ${diagnostics.database?.status === 'healthy' ? '#4caf50' : '#f44336'};">
+                    ${diagnostics.database?.status || '-'}
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Total Latency:</span>
+                <span style="font-weight: bold;">${diagnostics.database?.latency || '-'}</span>
+            </div>
+            ${diagnostics.database?.operations ? `
+                <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                    <span style="color: #666;">Write Operation:</span>
+                    <span style="font-weight: bold; color: ${getLatencyColor(diagnostics.database.operations.write)};">
+                        ${diagnostics.database.operations.write ? diagnostics.database.operations.write + 'ms' : 'Failed'}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                    <span style="color: #666;">Read Operation:</span>
+                    <span style="font-weight: bold; color: ${getLatencyColor(diagnostics.database.operations.read)};">
+                        ${diagnostics.database.operations.read ? diagnostics.database.operations.read + 'ms' : 'Failed'}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0;">
+                    <span style="color: #666;">Delete Operation:</span>
+                    <span style="font-weight: bold; color: ${getLatencyColor(diagnostics.database.operations.delete)};">
+                        ${diagnostics.database.operations.delete ? diagnostics.database.operations.delete + 'ms' : 'Failed'}
+                    </span>
+                </div>
+            ` : ''}
+        </div>
+        
+        <!-- User Statistics -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f5f5f5; border-radius: 10px; border-left: 4px solid #9C27B0;">
+            <h3 style="color: #333; margin-bottom: 15px;">👥 User Activity</h3>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Total Users:</span>
+                <span style="font-weight: bold;">${diagnostics.users?.total || '0'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Active Now (30min):</span>
+                <span style="font-weight: bold;">${diagnostics.users?.activeNow || '0'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0;">
+                <span style="color: #666;">New Today:</span>
+                <span style="font-weight: bold;">${diagnostics.users?.newToday || '0'}</span>
+            </div>
+            ${diagnostics.users?.recentlyActive && diagnostics.users.recentlyActive.length > 0 ? `
+                <div style="margin-top: 15px;">
+                    <span style="color: #666;">Recently Active:</span>
+                    <div style="max-height: 200px; overflow-y: auto; background: white; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                        ${diagnostics.users.recentlyActive.map(user => `
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem;">
+                                <span>${user.username}</span>
+                                <span>${formatTimestamp(user.lastSeen)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+        
+        <!-- System Info -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f5f5f5; border-radius: 10px; border-left: 4px solid #9C27B0;">
+            <h3 style="color: #333; margin-bottom: 15px;">⚙️ System Information</h3>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Platform:</span>
+                <span style="font-weight: bold;">${diagnostics.system?.platform || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Architecture:</span>
+                <span style="font-weight: bold;">${diagnostics.system?.arch || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">CPUs:</span>
+                <span style="font-weight: bold;">${diagnostics.system?.cpus || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="color: #666;">Total Memory:</span>
+                <span style="font-weight: bold;">${diagnostics.system?.totalMemory || '-'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0;">
+                <span style="color: #666;">Free Memory:</span>
+                <span style="font-weight: bold;">${diagnostics.system?.freeMemory || '-'}</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <p style="color: #666; font-size: 0.9rem;">
+                Last updated: ${new Date(diagnostics.timestamp).toLocaleString()}
+            </p>
+            <button onclick="refreshDiagnostics()" style="
+                margin-top: 10px;
+                background: #9C27B0;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 5px;
+                cursor: pointer;
+            ">🔄 Refresh</button>
+        </div>
+    `;
+    
+    document.getElementById('diagnosticsData').innerHTML = html;
+}
+
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) {
+        return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    } else {
+        return `${minutes}m`;
+    }
+}
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 60000) {
+        return 'Just now';
+    } else if (diff < 3600000) {
+        return `${Math.floor(diff / 60000)}m ago`;
+    } else {
+        return date.toLocaleTimeString();
+    }
+}
+
+function getLatencyColor(latency) {
+    if (!latency) return '#f44336';
+    const value = parseInt(latency);
+    if (value < 50) return '#4caf50';
+    if (value < 200) return '#ff9800';
+    return '#f44336';
+}
+
+// Close modal on background click
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('diagnosticsModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDiagnostics();
+            }
+        });
+    }
+});

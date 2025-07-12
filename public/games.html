@@ -222,7 +222,7 @@
         <div id="authMessage" class="auth-message" style="display: none;">
             <h2>🔒 Login Required</h2>
             <p>Please login or register to access the games!</p>
-            <a href="/login.html" class="auth-button">Login / Register</a>
+            <a href="/auth.html" class="auth-button">Login / Register</a>
         </div>
         
         <div id="gamesContainer" class="games-grid" style="display: none;">
@@ -253,7 +253,7 @@
         let userXP = 0;
         
         async function checkAuth() {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('authToken');
             
             if (!token) {
                 document.getElementById('authMessage').style.display = 'block';

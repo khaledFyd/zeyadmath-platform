@@ -665,6 +665,107 @@
                 </div>
             </div>
         </div>
+
+        <!-- Diagnostics Section -->
+        <div style="margin-top: 40px; text-align: center; padding: 20px;">
+            <button class="diagnostics-button" onclick="showDiagnostics()" style="
+                background: #9C27B0;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 30px;
+                font-size: 1.1rem;
+                font-weight: bold;
+                cursor: pointer;
+                border: none;
+                box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+            ">
+                <span>🔍</span>
+                <span>System Diagnostics</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Diagnostics Modal -->
+    <div class="diagnostics-modal" id="diagnosticsModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    ">
+        <div class="diagnostics-content" style="
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        ">
+            <div class="diagnostics-header" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            ">
+                <h2 class="diagnostics-title" style="
+                    font-size: 1.8rem;
+                    color: #333;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                ">
+                    🔍 System Diagnostics
+                    <span class="health-indicator" id="healthIndicator" style="
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        animation: pulse 2s infinite;
+                    "></span>
+                </h2>
+                <button class="close-button" onclick="closeDiagnostics()" style="
+                    font-size: 2rem;
+                    color: #999;
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                ">&times;</button>
+            </div>
+            
+            <div id="diagnosticsLoading" style="text-align: center; padding: 40px;">
+                <div class="loading-spinner"></div>
+                <p>Running diagnostics...</p>
+            </div>
+            
+            <div id="diagnosticsData" style="display: none;">
+                <!-- Diagnostics content will be populated here -->
+            </div>
+            
+            <div id="diagnosticsError" style="display: none; text-align: center; padding: 40px;">
+                <div style="font-size: 3rem;">❌</div>
+                <p style="color: #f44336; margin-top: 10px;">Failed to load diagnostics</p>
+                <p id="diagErrorMessage" style="color: #666; font-size: 0.9rem; margin-top: 10px;"></p>
+                <button onclick="refreshDiagnostics()" style="
+                    margin-top: 20px;
+                    background: #9C27B0;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">🔄 Try Again</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -445,9 +445,10 @@
         
         <div class="ui-panel">
             <div class="xp-coins-info">
-                <h4>XP Coins System</h4>
-                <p>Your XP above 100 = Game Coins</p>
-                <p>No coins from enemies!</p>
+                <h4>Coin System</h4>
+                <p>Base Coins: 100 (Everyone starts with this!)</p>
+                <p>Bonus: +1 coin per 5 XP from worksheets</p>
+                <p>No coins from enemies - earn more by completing lessons!</p>
             </div>
             
             <div class="info-card">
@@ -535,6 +536,7 @@
         // Check for user authentication and XP
         let userXP = 0;
         let availableCoins = 0;
+        let gameAccessData = {};
         
         async function checkAccess() {
             try {
@@ -559,13 +561,15 @@
                 
                 userXP = data.userXP;
                 availableCoins = data.availableCoins;
-                console.log(`Coins from worksheets: ${availableCoins}`);
+                gameAccessData = data; // Store for later use
+                console.log(`Total coins available: ${availableCoins}`);
                 if (data.worksheetsCompleted !== undefined) {
                     console.log(`Worksheets completed: ${data.worksheetsCompleted}`);
                 }
                 if (data.totalWorksheetXP !== undefined) {
                     console.log(`Total XP from worksheets: ${data.totalWorksheetXP}`);
                     console.log(`Coin formula: ${data.coinsFormula}`);
+                    console.log(`Base coins: ${data.baseCoins || 100}, Worksheet bonus: ${Math.max(0, (data.worksheetCoins || 0) - (data.baseCoins || 100))}`);
                 }
                 return true;
             } catch (error) {
@@ -589,16 +593,28 @@
             document.getElementById('gameContainer').classList.add('active');
             
             // Initialize game with XP-based coins
+            console.log('Initializing game with coins:', availableCoins);
             gameState.gold = availableCoins;
             document.getElementById('gold').textContent = gameState.gold;
+            console.log('Game state gold set to:', gameState.gold);
             
             // Update coin info display
             if (document.getElementById('coinInfo')) {
-                const totalXP = data.totalWorksheetXP || 0;
-                const worksheets = data.worksheetsCompleted || 0;
-                document.getElementById('coinInfo').textContent = 
-                    `${worksheets} worksheets = ${totalXP} XP`;
+                const baseCoins = gameAccessData.baseCoins || 100;
+                const worksheetCoins = gameAccessData.worksheetCoins || 0;
+                const worksheets = gameAccessData.worksheetsCompleted || 0;
+                
+                if (worksheetCoins > baseCoins) {
+                    document.getElementById('coinInfo').textContent = 
+                        `Base: 100 + Bonus: ${worksheetCoins - baseCoins} (from ${worksheets} worksheets)`;
+                } else {
+                    document.getElementById('coinInfo').textContent = 
+                        `Using base coins (Complete worksheets for bonus coins!)`;
+                }
             }
+            
+            // Update UI to show initial coins
+            updateUI();
             
             // Start the game
             startGame();

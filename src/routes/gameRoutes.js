@@ -55,7 +55,9 @@ router.get('/tower-defense/access', auth, checkMinimumXP, async (req, res) => {
             return total + (progress.xpEarned || 0);
         }, 0);
         
-        const availableCoins = Math.floor(totalWorksheetXP / 5);
+        // Base coins: minimum 100, plus additional coins from worksheets
+        const worksheetCoins = Math.floor(totalWorksheetXP / 5);
+        const availableCoins = Math.max(100, worksheetCoins);
         
         res.json({
             access: true,
@@ -64,7 +66,9 @@ router.get('/tower-defense/access', auth, checkMinimumXP, async (req, res) => {
             availableCoins: availableCoins,
             worksheetsCompleted: worksheetProgress.length,
             totalWorksheetXP: totalWorksheetXP,
-            coinsFormula: '1 coin per 5 XP from worksheets',
+            worksheetCoins: worksheetCoins,
+            baseCoins: 100,
+            coinsFormula: 'Base 100 coins + 1 coin per 5 XP from worksheets',
             message: 'Access granted to tower defense game'
         });
     } catch (error) {

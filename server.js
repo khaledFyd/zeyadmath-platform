@@ -16,12 +16,47 @@ const dynamicLessonRoutes = require('./src/routes/dynamicLessonRoutes');
 const gameRoutes = require('./src/routes/gameRoutes');
 const lessonTemplateRoutes = require('./src/routes/lessonTemplateRoutes');
 const debugRoutes = require('./src/routes/debugRoutes');
+const statusRoutes = require('./src/routes/statusRoutes');
+const diagnosticsRoutes = require('./src/routes/diagnosticsRoutes');
 
 // Initialize express app
 const app = express();
 
 // Connect to database
-connectDB();
+connectDB().then(async () => {
+  // Ensure demo account exists on server startup (if enabled)
+  const autoCreateDemo = process.env.AUTO_CREATE_DEMO_ON_STARTUP !== 'false'; // Default to true
+  
+  if (autoCreateDemo) {
+    try {
+      const { User } = require('./src/models');
+      
+      console.log('🔍 Checking for demo account...');
+      let demoUser = await User.findOne({ 
+        where: { email: 'demo@zeyadmath.com' } 
+      });
+      
+      if (!demoUser) {
+        console.log('👤 Creating demo account...');
+        demoUser = await User.create({
+          username: 'demo_student',
+          email: 'demo@zeyadmath.com',
+          password: 'demo123',
+          xp: 100,
+          level: 2
+        });
+        console.log('✅ Demo account created successfully!');
+        console.log('   Email: demo@zeyadmath.com');
+        console.log('   Password: demo123');
+      } else {
+        console.log('✅ Demo account already exists');
+      }
+    } catch (error) {
+      console.error('⚠️  Error checking/creating demo account:', error.message);
+      // Don't crash the server if demo account creation fails
+    }
+  }
+});
 
 // Security middleware - relaxed for development
 app.use(helmet({
@@ -52,6 +87,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/api/health' // Skip rate limiting for health checks
 });
 app.use('/api/', limiter);
 
@@ -86,6 +122,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 app.use('/api/dynamic-lessons', dynamicLessonRoutes);
 app.use('/api/games', gameRoutes);
+app.use('/api/status', statusRoutes);
+app.use('/api/diagnostics', diagnosticsRoutes);
 
 // Lesson templates with integration
 app.use('/lessons', lessonTemplateRoutes);

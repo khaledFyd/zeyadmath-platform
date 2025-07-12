@@ -98,6 +98,41 @@
             font-size: 0.875rem;
             margin-top: 5px;
             display: none;
+            padding: 8px 12px;
+            background: #ffebee;
+            border-radius: 6px;
+            border-left: 3px solid #f44336;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        
+        input.error-input {
+            border-color: #f44336 !important;
+            background-color: #fff5f5;
+        }
+        
+        input.success-input {
+            border-color: #4caf50 !important;
+            background-color: #f1f8f4;
         }
 
         .submit-btn {
@@ -183,37 +218,48 @@
         <!-- Login Form -->
         <form id="loginForm" class="auth-form">
             <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" id="loginEmail" required>
-                <div class="error" id="loginEmailError"></div>
+                <label for="loginEmailOrUsername">Email or Username</label>
+                <input type="text" id="loginEmailOrUsername" required placeholder="demo@zeyadmath.com or demo_student">
+                <div class="error" id="loginEmailOrUsernameError"></div>
             </div>
             <div class="form-group">
                 <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" required>
+                <input type="password" id="loginPassword" required placeholder="Enter your password">
                 <div class="error" id="loginPasswordError"></div>
             </div>
             <div class="error" id="loginError"></div>
             <button type="submit" class="submit-btn" id="loginBtn">
                 Login
             </button>
+            <div style="margin-top: 15px; padding: 15px; background: #f0f8ff; border-radius: 8px; font-size: 0.9rem; color: #666;">
+                <strong>Demo Account:</strong><br>
+                Email/Username: <code>demo@zeyadmath.com</code> or <code>demo_student</code><br>
+                Password: <code>demo123</code>
+            </div>
         </form>
 
         <!-- Register Form -->
         <form id="registerForm" class="auth-form" style="display: none;">
             <div class="form-group">
                 <label for="registerUsername">Username</label>
-                <input type="text" id="registerUsername" required pattern="[a-zA-Z0-9_]{3,30}">
+                <input type="text" id="registerUsername" required pattern="[a-zA-Z0-9_]{3,30}" 
+                       placeholder="e.g., john_doe, student123">
                 <div class="error" id="registerUsernameError"></div>
+                <small style="color: #666; font-size: 0.85rem;">3-30 characters, letters, numbers, and underscores only</small>
             </div>
             <div class="form-group">
                 <label for="registerEmail">Email</label>
-                <input type="email" id="registerEmail" required>
+                <input type="email" id="registerEmail" required 
+                       placeholder="e.g., student@example.com">
                 <div class="error" id="registerEmailError"></div>
+                <small style="color: #666; font-size: 0.85rem;">Valid email address required</small>
             </div>
             <div class="form-group">
                 <label for="registerPassword">Password</label>
-                <input type="password" id="registerPassword" required minlength="6">
+                <input type="password" id="registerPassword" required minlength="6"
+                       placeholder="At least 6 characters with a number">
                 <div class="error" id="registerPasswordError"></div>
+                <small style="color: #666; font-size: 0.85rem;">Minimum 6 characters, must include at least one number</small>
             </div>
             <div class="error" id="registerError"></div>
             <button type="submit" class="submit-btn" id="registerBtn">

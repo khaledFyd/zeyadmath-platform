@@ -599,7 +599,7 @@ class LessonIntegration {
             console.log(`[NAV UPDATE] Set XP badge to: ${userXP} XP`);
         } else {
             navAuthSection.innerHTML = `
-                <a href="/auth-fixed.html" class="login-prompt">Login</a>
+                <a href="/auth.html" class="login-prompt">Login</a>
             `;
         }
     }
@@ -662,22 +662,21 @@ class LessonIntegration {
             timeElement.textContent = timeElapsed;
         }
         
-        // Get current XP from the page
+        // Update the points earned display with LESSON XP, not total user XP
+        const pointsElement = document.getElementById('pointsEarned');
+        if (pointsElement) {
+            // Show the XP earned in THIS lesson only
+            pointsElement.textContent = this.totalXPEarned;
+            console.log('[UPDATE STATS] Lesson XP earned:', this.totalXPEarned);
+        }
+        
+        // The xp-value element shows the user's TOTAL XP (all-time)
+        // This is NOT the same as lesson XP and should not be validated here
         const xpElement = document.getElementById('xp-value');
-        if (xpElement) {
-            const pointsElement = document.getElementById('pointsEarned');
-            if (pointsElement) {
-                // Check for corrupted XP value
-                let xpValue = parseInt(xpElement.textContent) || 0;
-                if (xpValue > 500) {
-                    console.error('[UPDATE STATS] CORRUPTED XP DETECTED in xp-value element:', xpValue);
-                    console.error('[UPDATE STATS] Resetting to totalXPEarned:', this.totalXPEarned);
-                    xpValue = this.totalXPEarned;
-                    // Also fix the xp-value element
-                    xpElement.textContent = xpValue;
-                }
-                pointsElement.textContent = xpValue;
-            }
+        if (xpElement && this.userData) {
+            const totalUserXP = this.userData.totalXP || this.userData.xp || 0;
+            xpElement.textContent = totalUserXP;
+            console.log('[UPDATE STATS] Total user XP:', totalUserXP);
         }
     }
     
@@ -749,20 +748,12 @@ class LessonIntegration {
     }
     
     saveLessonState() {
-        const xpElement = document.getElementById('xp-value');
-        let currentXP = xpElement ? parseInt(xpElement.textContent) : 0;
-        
-        // Check for corrupted XP value before saving
-        if (currentXP > 500) {
-            console.error('[SAVE STATE] CORRUPTED XP DETECTED:', currentXP);
-            console.error('[SAVE STATE] Using totalXPEarned instead:', this.totalXPEarned);
-            currentXP = this.totalXPEarned;
-        }
+        // Save lesson state with lesson XP, not total user XP
+        const lessonXP = this.totalXPEarned;
         
         const state = {
             lessonId: this.config.lessonId,
-            totalXPEarned: this.totalXPEarned,
-            currentXP: currentXP,
+            totalXPEarned: lessonXP,
             lessonStartTime: this.lessonStartTime,
             timestamp: Date.now()
         };
@@ -1130,16 +1121,11 @@ class LessonIntegration {
         try {
             // Calculate score based on XP earned vs possible XP
             const xpElement = document.getElementById('xp-value');
-            let currentXP = xpElement ? parseInt(xpElement.textContent) : 0;
+            // Use lesson XP for completion, not total user XP
+            const lessonXP = this.totalXPEarned;
             
-            // Check for corrupted XP value
-            if (currentXP > 500) {
-                console.error('[COMPLETE] CORRUPTED XP DETECTED:', currentXP);
-                console.error('[COMPLETE] Using totalXPEarned instead:', this.totalXPEarned);
-                currentXP = this.totalXPEarned;
-            }
-            
-            const score = Math.min(100, Math.round((currentXP / 500) * 100));
+            // Calculate score based on lesson XP (assuming max 50 XP per lesson)
+            const score = Math.min(100, Math.round((lessonXP / 50) * 100));
             
             const response = await fetch('/api/progress/activity', {
                 method: 'POST',
@@ -1201,26 +1187,23 @@ class LessonIntegration {
     }
     
     monitorXPDisplay() {
-        // Monitor the xp-value element for corruption
+        // Update displays periodically
         const checkInterval = setInterval(() => {
-            const xpElement = document.getElementById('xp-value');
-            if (xpElement) {
-                const currentValue = parseInt(xpElement.textContent) || 0;
-                if (currentValue > 500) {
-                    console.error('[MONITOR] CORRUPTED XP DETECTED:', currentValue);
-                    console.error('[MONITOR] Fixing to totalXPEarned:', this.totalXPEarned);
-                    xpElement.textContent = this.totalXPEarned;
-                    
-                    // Also update the points earned display
-                    const pointsElement = document.getElementById('pointsEarned');
-                    if (pointsElement) {
-                        pointsElement.textContent = this.totalXPEarned;
-                    }
-                    
-                    // Update completion stats to reflect the fix
-                    this.updateCompletionStats();
-                }
+            // Update lesson XP display
+            const pointsElement = document.getElementById('pointsEarned');
+            if (pointsElement) {
+                pointsElement.textContent = this.totalXPEarned;
             }
+            
+            // Update total user XP display
+            const xpElement = document.getElementById('xp-value');
+            if (xpElement && this.userData) {
+                const totalUserXP = this.userData.totalXP || this.userData.xp || 0;
+                xpElement.textContent = totalUserXP;
+            }
+            
+            // Update completion stats
+            this.updateCompletionStats();
         }, 1000); // Check every second
         
         // Clean up on page unload
