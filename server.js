@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
-const connectDB = require('./src/config/database');
+const { connectDB } = require('./src/config/database');
 const authRoutes = require('./src/routes/authRoutes');
 const progressRoutes = require('./src/routes/progressRoutes');
 const lessonRoutes = require('./src/routes/lessonRoutes');
@@ -15,6 +15,7 @@ const templateRoutes = require('./src/routes/templateRoutes');
 const dynamicLessonRoutes = require('./src/routes/dynamicLessonRoutes');
 const gameRoutes = require('./src/routes/gameRoutes');
 const lessonTemplateRoutes = require('./src/routes/lessonTemplateRoutes');
+const debugRoutes = require('./src/routes/debugRoutes');
 
 // Initialize express app
 const app = express();
@@ -77,6 +78,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/templates', templateRoutes);
+
+// Debug routes (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/debug', debugRoutes);
+  console.log('Debug routes enabled at /api/debug');
+}
 app.use('/api/dynamic-lessons', dynamicLessonRoutes);
 app.use('/api/games', gameRoutes);
 
@@ -122,9 +129,9 @@ app.use((err, req, res, next) => {
     });
   }
   
-  // MongoDB validation error
-  if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map(e => e.message);
+  // Sequelize validation error
+  if (err.name === 'SequelizeValidationError') {
+    const errors = err.errors.map(e => e.message);
     return res.status(400).json({ 
       success: false, 
       error: 'Validation error', 
@@ -132,9 +139,9 @@ app.use((err, req, res, next) => {
     });
   }
   
-  // MongoDB duplicate key error
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyPattern)[0];
+  // Sequelize unique constraint error
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    const field = err.errors[0]?.path || 'field';
     return res.status(400).json({ 
       success: false, 
       error: `${field} already exists` 

@@ -1,129 +1,150 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sequelize } = require('../config/database');
 
-const userSchema = new mongoose.Schema({
-  username: { 
-    type: String, 
-    required: [true, 'Username is required'],
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  username: {
+    type: DataTypes.STRING(30),
+    allowNull: false,
     unique: true,
-    trim: true,
-    minlength: [3, 'Username must be at least 3 characters'],
-    maxlength: [30, 'Username cannot exceed 30 characters']
-  },
-  email: { 
-    type: String, 
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
-  },
-  password: { 
-    type: String, 
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false
-  },
-  xp: { 
-    type: Number, 
-    default: 0,
-    min: [0, 'XP cannot be negative']
-  },
-  level: { 
-    type: Number, 
-    default: 1,
-    min: [1, 'Level must be at least 1']
-  },
-  achievements: [{
-    name: {
-      type: String,
-      required: true
-    },
-    description: {
-      type: String,
-      required: true
-    },
-    earnedAt: {
-      type: Date,
-      default: Date.now
-    },
-    xpAwarded: {
-      type: Number,
-      default: 0
+    validate: {
+      len: {
+        args: [3, 30],
+        msg: 'Username must be between 3 and 30 characters'
+      }
     }
-  }],
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: {
+        msg: 'Please provide a valid email'
+      }
+    },
+    set(value) {
+      this.setDataValue('email', value.toLowerCase().trim());
+    }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      len: {
+        args: [6, 255],
+        msg: 'Password must be at least 6 characters'
+      }
+    }
+  },
+  xp: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'XP cannot be negative'
+      }
+    }
+  },
+  level: {
+    type: DataTypes.INTEGER,
+    defaultValue: 1,
+    validate: {
+      min: {
+        args: [1],
+        msg: 'Level must be at least 1'
+      }
+    }
+  },
+  achievements: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
   streakCount: {
-    type: Number,
-    default: 0
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   lastActivityDate: {
-    type: Date
-  },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+    type: DataTypes.DATE
   }
+}, {
+  timestamps: true,
+  defaultScope: {
+    attributes: { exclude: ['password'] }
+  },
+  scopes: {
+    withPassword: {
+      attributes: { include: ['password'] }
+    }
+  },
+  indexes: [
+    {
+      fields: ['email']
+    },
+    {
+      fields: ['username']
+    },
+    {
+      fields: ['level', 'xp']
+    }
+  ]
 });
-
-// Index for performance
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-userSchema.index({ level: -1, xp: -1 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  
-  try {
+User.beforeSave(async (user) => {
+  if (user.changed('password')) {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+    user.password = await bcrypt.hash(user.password, salt);
   }
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+// Instance methods
+User.prototype.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate JWT token
-userSchema.methods.generateAuthToken = function() {
+User.prototype.generateAuthToken = function() {
   return jwt.sign(
     { 
-      id: this._id, 
+      id: this.id, 
       username: this.username,
       email: this.email 
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 };
 
-// Calculate level based on XP
-userSchema.methods.calculateLevel = function() {
+User.prototype.calculateLevel = function() {
   return Math.floor(Math.sqrt(this.xp / 100)) + 1;
 };
 
-// Get XP required for next level
-userSchema.methods.getXPForNextLevel = function() {
+User.prototype.getXPForNextLevel = function() {
   return Math.pow(this.level, 2) * 100;
 };
 
-// Add achievement
-userSchema.methods.addAchievement = function(achievement) {
-  this.achievements.push(achievement);
+User.prototype.addAchievement = async function(achievement) {
+  const achievements = this.achievements || [];
+  achievements.push({
+    ...achievement,
+    earnedAt: achievement.earnedAt || new Date()
+  });
+  
+  this.achievements = achievements;
   this.xp += achievement.xpAwarded || 0;
   this.level = this.calculateLevel();
-  return this.save();
+  
+  return await this.save();
 };
 
-// Update streak
-userSchema.methods.updateStreak = function() {
+User.prototype.updateStreak = function() {
   const now = new Date();
   const lastActivity = this.lastActivityDate;
   
@@ -147,4 +168,4 @@ userSchema.methods.updateStreak = function() {
   this.lastActivityDate = now;
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = User;

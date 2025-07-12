@@ -1,5 +1,6 @@
 const { Lesson, Progress } = require('../models');
 const { validationResult } = require('express-validator');
+const { Op } = require('sequelize');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -9,33 +10,44 @@ const getAllLessons = async (req, res) => {
     const { topic, difficulty, active } = req.query;
     
     // Build query
-    const query = {};
-    if (topic) query.topic = topic;
-    if (difficulty) query.difficulty = difficulty;
-    if (active !== undefined) query.isActive = active === 'true';
-    else query.isActive = true; // Default to active lessons only
+    const where = {};
+    if (topic) where.topic = topic;
+    if (difficulty) where.difficulty = difficulty;
+    if (active !== undefined) where.isActive = active === 'true';
+    else where.isActive = true; // Default to active lessons only
 
-    const lessons = await Lesson.find(query)
-      .sort({ topic: 1, difficulty: 1, order: 1 })
-      .select('-content'); // Exclude content for list view
+    const lessons = await Lesson.findAll({
+      where,
+      order: [['topic', 'ASC'], ['difficulty', 'ASC'], ['order', 'ASC']],
+      attributes: { exclude: ['content'] } // Exclude content for list view
+    });
 
     // If user is authenticated, add completion status
     if (req.userId) {
-      const completedLessons = await Progress.find({
-        userId: req.userId,
-        activityType: 'lesson',
-        score: { $gte: 70 } // Consider completed if score >= 70
-      }).distinct('metadata.lessonId');
+      const completedProgress = await Progress.findAll({
+        where: {
+          userId: req.userId,
+          activityType: 'lesson',
+          score: { [Op.gte]: 70 } // Consider completed if score >= 70
+        },
+        attributes: ['metadata'],
+        raw: true
+      });
+      
+      const completedLessons = completedProgress
+        .map(p => p.metadata && p.metadata.lessonId)
+        .filter(id => id);
 
       const lessonsWithStatus = lessons.map(lesson => ({
-        ...lesson.toObject(),
-        completed: completedLessons.some(id => id.toString() === lesson._id.toString()),
+        ...lesson.toJSON(),
+        completed: completedLessons.some(id => id === lesson.id || id === lesson.id.toString()),
         accessible: true // Will be updated below
       }));
 
       // Check prerequisites
       for (const lesson of lessonsWithStatus) {
-        lesson.accessible = await Lesson.findById(lesson._id).then(l => l.canUserAccess(req.userId));
+        const lessonInstance = await Lesson.findByPk(lesson.id);
+        lesson.accessible = await lessonInstance.canUserAccess(req.userId);
       }
 
       return res.json({
@@ -62,8 +74,14 @@ const getLessonById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const lesson = await Lesson.findById(id)
-      .populate('prerequisites', 'title topic difficulty');
+    const lesson = await Lesson.findByPk(id, {
+      include: [{
+        model: Lesson,
+        as: 'prerequisiteLessons',
+        attributes: ['title', 'topic', 'difficulty'],
+        through: { attributes: [] }
+      }]
+    });
 
     if (!lesson) {
       return res.status(404).json({ 
@@ -84,16 +102,22 @@ const getLessonById = async (req, res) => {
 
       // Get user's progress on this lesson
       const progress = await Progress.findOne({
-        userId: req.userId,
-        activityType: 'lesson',
-        'metadata.lessonId': lesson._id
-      }).sort({ completedAt: -1 });
+        where: {
+          userId: req.userId,
+          activityType: 'lesson'
+        },
+        order: [['completedAt', 'DESC']]
+      });
+      
+      // Check if progress is for this lesson
+      const lessonProgress = progress && progress.metadata && 
+        progress.metadata.lessonId === lesson.id ? progress : null;
 
       return res.json({
         success: true,
         data: {
-          ...lesson.toObject(),
-          userProgress: progress
+          ...lesson.toJSON(),
+          userProgress: lessonProgress
         }
       });
     }
@@ -121,17 +145,24 @@ const getLessonsByTopic = async (req, res) => {
 
     // Add user-specific data if authenticated
     if (req.userId) {
-      const completedLessons = await Progress.find({
-        userId: req.userId,
-        activityType: 'lesson',
-        topic,
-        score: { $gte: 70 }
-      }).distinct('metadata.lessonId');
+      const completedProgress = await Progress.findAll({
+        where: {
+          userId: req.userId,
+          activityType: 'lesson',
+          topic,
+          score: { [Op.gte]: 70 }
+        },
+        attributes: ['metadata']
+      });
+      
+      const completedLessons = completedProgress
+        .map(p => p.metadata && p.metadata.lessonId)
+        .filter(id => id);
 
       const lessonsWithStatus = await Promise.all(
         lessons.map(async (lesson) => ({
-          ...lesson.toObject(),
-          completed: completedLessons.some(id => id.toString() === lesson._id.toString()),
+          ...lesson.toJSON(),
+          completed: completedLessons.some(id => id === lesson.id || id === lesson.id.toString()),
           accessible: await lesson.canUserAccess(req.userId)
         }))
       );
@@ -164,17 +195,24 @@ const getLessonPath = async (req, res) => {
 
     // Add user progress if authenticated
     if (req.userId) {
-      const completedLessons = await Progress.find({
-        userId: req.userId,
-        activityType: 'lesson',
-        topic,
-        score: { $gte: 70 }
-      }).distinct('metadata.lessonId');
+      const completedProgress = await Progress.findAll({
+        where: {
+          userId: req.userId,
+          activityType: 'lesson',
+          topic,
+          score: { [Op.gte]: 70 }
+        },
+        attributes: ['metadata']
+      });
+      
+      const completedLessons = completedProgress
+        .map(p => p.metadata && p.metadata.lessonId)
+        .filter(id => id);
 
       const pathWithProgress = await Promise.all(
         path.map(async (lesson) => ({
-          ...lesson.toObject(),
-          completed: completedLessons.some(id => id.toString() === lesson._id.toString()),
+          ...lesson.toJSON(),
+          completed: completedLessons.some(id => id === lesson.id || id === lesson.id.toString()),
           accessible: await lesson.canUserAccess(req.userId)
         }))
       );
@@ -205,7 +243,7 @@ const completeLesson = async (req, res) => {
     const { timeSpent, score, answers } = req.body;
 
     // Find lesson
-    const lesson = await Lesson.findById(id);
+    const lesson = await Lesson.findByPk(id);
     if (!lesson) {
       return res.status(404).json({ 
         success: false, 
@@ -223,7 +261,7 @@ const completeLesson = async (req, res) => {
     }
 
     // Create progress record
-    const progress = new Progress({
+    const progress = await Progress.create({
       userId: req.userId,
       activityType: 'lesson',
       topic: lesson.topic,
@@ -233,19 +271,17 @@ const completeLesson = async (req, res) => {
       xpEarned: lesson.xpReward,
       difficulty: lesson.difficulty,
       metadata: {
-        lessonId: lesson._id,
+        lessonId: lesson.id,
         lessonTitle: lesson.title
       },
       answers
     });
 
-    await progress.save();
-
     // Update lesson stats
     await lesson.updateCompletionStats(timeSpent, score, true);
 
     // Update user XP
-    const user = await require('../models').User.findById(req.userId);
+    const user = await require('../models').User.findByPk(req.userId);
     user.xp += lesson.xpReward;
     user.level = user.calculateLevel();
     await user.save();
@@ -294,18 +330,24 @@ const getRecommendedLessons = async (req, res) => {
 // Get lesson topics
 const getLessonTopics = async (req, res) => {
   try {
-    const topics = await Lesson.distinct('topic', { isActive: true });
+    const topics = await Lesson.findAll({
+      where: { isActive: true },
+      attributes: [[Lesson.sequelize.fn('DISTINCT', Lesson.sequelize.col('topic')), 'topic']],
+      raw: true
+    }).then(results => results.map(r => r.topic));
     
     // Get topic stats if user is authenticated
     if (req.userId) {
       const topicStats = await Promise.all(
         topics.map(async (topic) => {
-          const lessonCount = await Lesson.countDocuments({ topic, isActive: true });
-          const completedCount = await Progress.countDocuments({
-            userId: req.userId,
-            activityType: 'lesson',
-            topic,
-            score: { $gte: 70 }
+          const lessonCount = await Lesson.count({ where: { topic, isActive: true } });
+          const completedCount = await Progress.count({
+            where: {
+              userId: req.userId,
+              activityType: 'lesson',
+              topic,
+              score: { [Op.gte]: 70 }
+            }
           });
 
           return {
@@ -342,18 +384,18 @@ const getRevisionMaterials = async (req, res) => {
     const { topic } = req.params;
 
     // For now, return lessons marked as revision or all completed lessons
-    const query = { 
-      topic, 
-      isActive: true,
-      $or: [
-        { tags: 'revision' },
-        { difficulty: 'beginner' } // Include beginner lessons for revision
-      ]
-    };
-
-    const materials = await Lesson.find(query)
-      .select('-content')
-      .sort({ difficulty: 1, order: 1 });
+    const materials = await Lesson.findAll({ 
+      where: {
+        topic, 
+        isActive: true,
+        [Op.or]: [
+          Lesson.sequelize.literal("tags @> '\"revision\"'"),
+          { difficulty: 'beginner' } // Include beginner lessons for revision
+        ]
+      },
+      attributes: { exclude: ['content'] },
+      order: [['difficulty', 'ASC'], ['order', 'ASC']]
+    });
 
     res.json({
       success: true,
@@ -374,17 +416,23 @@ const getExampleProblems = async (req, res) => {
     const { topic } = req.params;
 
     // For now, return lessons tagged as examples
-    const examples = await Lesson.find({ 
-      topic, 
-      isActive: true,
-      tags: 'example'
-    })
-    .select('-content')
-    .sort({ difficulty: 1, order: 1 });
+    const examples = await Lesson.findAll({ 
+      where: {
+        topic, 
+        isActive: true
+      },
+      attributes: { exclude: ['content'] },
+      order: [['difficulty', 'ASC'], ['order', 'ASC']]
+    });
+    
+    // Filter by tag
+    const filteredExamples = examples.filter(lesson => 
+      lesson.tags && lesson.tags.includes('example')
+    );
 
     res.json({
       success: true,
-      data: examples
+      data: filteredExamples
     });
   } catch (error) {
     console.error('Get example problems error:', error);

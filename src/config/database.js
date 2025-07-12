@@ -1,33 +1,45 @@
-const mongoose = require('mongoose');
+const { Sequelize } = require('sequelize');
+const config = require('./config');
+
+const env = process.env.NODE_ENV || 'development';
+const dbConfig = config[env];
+
+let sequelize;
+
+if (dbConfig.use_env_variable) {
+  sequelize = new Sequelize(process.env[dbConfig.use_env_variable], dbConfig);
+} else {
+  sequelize = new Sequelize(
+    dbConfig.database,
+    dbConfig.username,
+    dbConfig.password,
+    dbConfig
+  );
+}
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await sequelize.authenticate();
+    console.log('PostgreSQL Connected Successfully');
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error(`MongoDB connection error: ${err}`);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-    });
+    // Sync models in development
+    // Temporarily disable sync to test server startup
+    // if (env === 'development') {
+    //   await sequelize.sync({ alter: true });
+    //   console.log('Database synced');
+    // }
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
+      await sequelize.close();
+      console.log('PostgreSQL connection closed through app termination');
       process.exit(0);
     });
   } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
+    console.error(`Error connecting to PostgreSQL:`, error);
+    console.error('Full error details:', error.stack);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+module.exports = { connectDB, sequelize };

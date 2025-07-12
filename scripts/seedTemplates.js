@@ -1,7 +1,6 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const { Lesson } = require('../src/models');
-const connectDB = require('../src/config/database');
+const { Lesson, sequelize } = require('../src/models');
+const { connectDB } = require('../src/config/database');
 
 // Template configurations - each template can be used for multiple lesson types
 const templateConfigs = [
@@ -157,7 +156,7 @@ async function seedTemplates() {
         const lessonTitle = lessonData.title;
         
         // Check if lesson already exists
-        const existingLesson = await Lesson.findOne({ title: lessonTitle });
+        const existingLesson = await Lesson.findOne({ where: { title: lessonTitle } });
         
         if (existingLesson) {
           console.log(`  ⏭️  Skipping "${lessonTitle}" - already exists`);
@@ -166,7 +165,7 @@ async function seedTemplates() {
         }
         
         // Create new lesson
-        const newLesson = new Lesson({
+        const newLesson = await Lesson.create({
           title: lessonTitle,
           topic: config.topic,
           subtopic: config.subtopic,
@@ -188,8 +187,6 @@ async function seedTemplates() {
             }
           ]
         });
-        
-        await newLesson.save();
         console.log(`  ✅ Created "${lessonTitle}" - ${lessonData.xpReward} XP`);
         totalCreated++;
       }
@@ -203,23 +200,26 @@ async function seedTemplates() {
     // Revisions have no prerequisites
     
     for (const config of templateConfigs) {
-      const lessons = await Lesson.find({ 
-        topic: config.topic,
-        subtopic: config.subtopic 
-      }).sort('order');
+      const lessons = await Lesson.findAll({ 
+        where: {
+          topic: config.topic,
+          subtopic: config.subtopic 
+        },
+        order: [['order', 'ASC']]
+      });
       
       const tutorial = lessons.find(l => l.tags.includes('tutorial'));
       const examples = lessons.find(l => l.tags.includes('examples'));
       const worksheet = lessons.find(l => l.tags.includes('worksheet'));
       
       if (examples && tutorial) {
-        examples.prerequisites = [tutorial._id];
+        examples.prerequisites = [tutorial.id];
         await examples.save();
         console.log(`  📎 ${examples.title} requires ${tutorial.title}`);
       }
       
       if (worksheet && examples) {
-        worksheet.prerequisites = [examples._id];
+        worksheet.prerequisites = [examples.id];
         await worksheet.save();
         console.log(`  📎 ${worksheet.title} requires ${examples.title}`);
       }
@@ -230,25 +230,25 @@ async function seedTemplates() {
     
     // Donut Algebra (like-terms) is prerequisite for Algebra Balance (equations)
     const donutTutorial = await Lesson.findOne({ 
-      title: 'Donut Algebra Tutorial - Combining Like Terms' 
+      where: { title: 'Donut Algebra Tutorial - Combining Like Terms' }
     });
     const balanceTutorial = await Lesson.findOne({ 
-      title: 'Algebra Balance Tutorial - Solving Equations' 
+      where: { title: 'Algebra Balance Tutorial - Solving Equations' }
     });
     
     if (balanceTutorial && donutTutorial) {
-      balanceTutorial.prerequisites = [donutTutorial._id];
+      balanceTutorial.prerequisites = [donutTutorial.id];
       await balanceTutorial.save();
       console.log(`  📎 ${balanceTutorial.title} requires ${donutTutorial.title}`);
     }
     
     // Algebra Balance is prerequisite for Enhanced Algebra Balance
     const enhancedTutorial = await Lesson.findOne({ 
-      title: 'Enhanced Algebra Tutorial - Advanced Techniques' 
+      where: { title: 'Enhanced Algebra Tutorial - Advanced Techniques' }
     });
     
     if (enhancedTutorial && balanceTutorial) {
-      enhancedTutorial.prerequisites = [balanceTutorial._id];
+      enhancedTutorial.prerequisites = [balanceTutorial.id];
       await enhancedTutorial.save();
       console.log(`  📎 ${enhancedTutorial.title} requires ${balanceTutorial.title}`);
     }
@@ -258,7 +258,9 @@ async function seedTemplates() {
     console.log(`   Skipped: ${totalSkipped} lessons`);
     
     // Show lesson summary
-    const allLessons = await Lesson.find().sort({ topic: 1, order: 1 });
+    const allLessons = await Lesson.findAll({
+      order: [['topic', 'ASC'], ['order', 'ASC']]
+    });
     console.log('\n📊 Total lessons in database:', allLessons.length);
     
     const byType = {};
@@ -278,7 +280,7 @@ async function seedTemplates() {
   } catch (error) {
     console.error('❌ Error seeding templates:', error);
   } finally {
-    await mongoose.connection.close();
+    await sequelize.close();
     process.exit(0);
   }
 }

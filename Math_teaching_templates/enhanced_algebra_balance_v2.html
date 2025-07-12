@@ -2253,6 +2253,11 @@
             currentXP += amount;
             document.getElementById('xp-value').textContent = currentXP;
             
+            // Send XP to the global lesson integration system if available
+            if (window.LessonXP && window.LessonXP.earnXP) {
+                window.LessonXP.earnXP(amount);
+            }
+            
             const xpDisplay = document.getElementById('xp-display');
             xpDisplay.classList.add('pulse');
             setTimeout(() => {

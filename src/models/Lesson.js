@@ -1,149 +1,148 @@
-const mongoose = require('mongoose');
+const { DataTypes, Op } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const lessonSchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: [true, 'Lesson title is required'],
-    trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
+const Lesson = sequelize.define('Lesson', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  topic: { 
-    type: String, 
-    required: [true, 'Topic is required'],
-    trim: true,
-    index: true
+  title: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    validate: {
+      len: {
+        args: [1, 100],
+        msg: 'Title cannot exceed 100 characters'
+      }
+    }
+  },
+  topic: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   subtopic: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING
   },
-  difficulty: { 
-    type: String, 
-    enum: ['beginner', 'intermediate', 'advanced'],
-    default: 'beginner',
-    required: true
+  difficulty: {
+    type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+    defaultValue: 'beginner',
+    allowNull: false
   },
-  content: { 
-    type: String, 
-    required: function() {
-      return !this.templatePath; // Content is required only if templatePath is not provided
+  content: {
+    type: DataTypes.TEXT,
+    validate: {
+      contentOrTemplate() {
+        if (!this.content && !this.templatePath) {
+          throw new Error('Either content or templatePath must be provided');
+        }
+      }
     }
   },
   templatePath: {
-    type: String, // Path to HTML template file
-    trim: true
+    type: DataTypes.STRING
   },
   description: {
-    type: String,
-    maxlength: [500, 'Description cannot exceed 500 characters']
+    type: DataTypes.STRING(500),
+    validate: {
+      len: {
+        args: [0, 500],
+        msg: 'Description cannot exceed 500 characters'
+      }
+    }
   },
-  objectives: [{
-    type: String
-  }],
-  xpReward: { 
-    type: Number, 
-    default: 10,
-    min: [0, 'XP reward cannot be negative']
+  objectives: {
+    type: DataTypes.JSON,
+    defaultValue: []
   },
-  prerequisites: [{
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Lesson'
-  }],
+  xpReward: {
+    type: DataTypes.INTEGER,
+    defaultValue: 10,
+    validate: {
+      min: {
+        args: [0],
+        msg: 'XP reward cannot be negative'
+      }
+    }
+  },
+  prerequisites: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
   order: {
-    type: Number,
-    default: 0
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
   estimatedTime: {
-    type: Number, // in minutes
-    default: 15
+    type: DataTypes.INTEGER, // in minutes
+    defaultValue: 15
   },
-  tags: [{
-    type: String,
-    trim: true
-  }],
-  resources: [{
-    title: String,
-    type: {
-      type: String,
-      enum: ['video', 'article', 'exercise', 'game', 'quiz']
-    },
-    url: String,
-    description: String
-  }],
+  tags: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
+  resources: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  },
   isActive: {
-    type: Boolean,
-    default: true
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  // Track completion statistics
   completionStats: {
-    totalAttempts: {
-      type: Number,
-      default: 0
-    },
-    totalCompletions: {
-      type: Number,
-      default: 0
-    },
-    averageTime: {
-      type: Number,
-      default: 0
-    },
-    averageScore: {
-      type: Number,
-      default: 0
+    type: DataTypes.JSON,
+    defaultValue: {
+      totalAttempts: 0,
+      totalCompletions: 0,
+      averageTime: 0,
+      averageScore: 0
     }
   }
-});
-
-// Indexes for performance
-lessonSchema.index({ topic: 1, difficulty: 1, order: 1 });
-lessonSchema.index({ isActive: 1, topic: 1 });
-lessonSchema.index({ tags: 1 });
-
-// Update timestamp on save
-lessonSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
+}, {
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['topic', 'difficulty', 'order']
+    },
+    {
+      fields: ['isActive', 'topic']
+    }
+    // Note: JSON fields like 'tags' need GIN indexes which must be created via migration
+  ]
 });
 
 // Virtual for completion rate
-lessonSchema.virtual('completionRate').get(function() {
-  if (this.completionStats.totalAttempts === 0) return 0;
+Lesson.prototype.getCompletionRate = function() {
+  if (!this.completionStats || this.completionStats.totalAttempts === 0) return 0;
   return Math.round((this.completionStats.totalCompletions / this.completionStats.totalAttempts) * 100);
-});
+};
 
 // Static method to get lessons by topic and difficulty
-lessonSchema.statics.getLessonsByTopic = async function(topic, difficulty = null) {
-  const query = { 
+Lesson.getLessonsByTopic = async function(topic, difficulty = null) {
+  const where = { 
     topic, 
     isActive: true 
   };
   
   if (difficulty) {
-    query.difficulty = difficulty;
+    where.difficulty = difficulty;
   }
   
-  return this.find(query)
-    .sort({ difficulty: 1, order: 1 })
-    .populate('prerequisites', 'title topic difficulty');
+  return this.findAll({
+    where,
+    order: [['difficulty', 'ASC'], ['order', 'ASC']]
+  });
 };
 
 // Static method to get lesson path (ordered lessons with prerequisites)
-lessonSchema.statics.getLessonPath = async function(topic) {
-  const lessons = await this.find({ 
-    topic, 
-    isActive: true 
-  })
-  .populate('prerequisites')
-  .sort({ difficulty: 1, order: 1 });
+Lesson.getLessonPath = async function(topic) {
+  const lessons = await this.findAll({
+    where: { 
+      topic, 
+      isActive: true 
+    },
+    order: [['difficulty', 'ASC'], ['order', 'ASC']]
+  });
   
   // Build dependency graph and return ordered path
   const lessonMap = new Map();
@@ -151,7 +150,7 @@ lessonSchema.statics.getLessonPath = async function(topic) {
   const path = [];
   
   lessons.forEach(lesson => {
-    lessonMap.set(lesson._id.toString(), lesson);
+    lessonMap.set(lesson.id.toString(), lesson);
   });
   
   function addToPath(lessonId) {
@@ -161,39 +160,50 @@ lessonSchema.statics.getLessonPath = async function(topic) {
     if (!lesson) return;
     
     // Add prerequisites first
-    lesson.prerequisites.forEach(prereq => {
-      addToPath(prereq._id.toString());
-    });
+    if (lesson.prerequisites && Array.isArray(lesson.prerequisites)) {
+      lesson.prerequisites.forEach(prereqId => {
+        addToPath(prereqId.toString());
+      });
+    }
     
     visited.add(lessonId);
     path.push(lesson);
   }
   
   lessons.forEach(lesson => {
-    addToPath(lesson._id.toString());
+    addToPath(lesson.id.toString());
   });
   
   return path;
 };
 
 // Instance method to check if user can access lesson
-lessonSchema.methods.canUserAccess = async function(userId) {
-  if (this.prerequisites.length === 0) return true;
+Lesson.prototype.canUserAccess = async function(userId) {
+  if (!this.prerequisites || this.prerequisites.length === 0) return true;
   
-  const Progress = mongoose.model('Progress');
+  const Progress = require('./Progress');
   
   try {
     // Check if all prerequisites are completed
-    const completedLessons = await Progress.find({
-      userId,
-      activityType: 'lesson',
-      score: { $gte: 70 } // Minimum passing score
-    }).distinct('metadata.lessonId');
+    const completedLessons = await Progress.findAll({
+      where: {
+        userId,
+        activityType: 'lesson',
+        score: { [Op.gte]: 70 } // Minimum passing score
+      },
+      attributes: ['metadata'],
+      raw: true
+    });
     
-    const completedSet = new Set(completedLessons.map(id => id ? id.toString() : ''));
+    const completedSet = new Set(
+      completedLessons
+        .map(p => p.metadata && p.metadata.lessonId)
+        .filter(id => id)
+        .map(id => id.toString())
+    );
     
-    return this.prerequisites.every(prereq => 
-      completedSet.has(prereq.toString())
+    return this.prerequisites.every(prereqId => 
+      completedSet.has(prereqId.toString())
     );
   } catch (error) {
     console.error('Error checking lesson access:', error);
@@ -203,38 +213,50 @@ lessonSchema.methods.canUserAccess = async function(userId) {
 };
 
 // Instance method to update completion stats
-lessonSchema.methods.updateCompletionStats = function(timeSpent, score, completed) {
-  this.completionStats.totalAttempts += 1;
+Lesson.prototype.updateCompletionStats = async function(timeSpent, score, completed) {
+  const stats = this.completionStats || {
+    totalAttempts: 0,
+    totalCompletions: 0,
+    averageTime: 0,
+    averageScore: 0
+  };
+  
+  stats.totalAttempts += 1;
   
   if (completed) {
-    this.completionStats.totalCompletions += 1;
+    stats.totalCompletions += 1;
   }
   
   // Update average time
-  const totalTime = this.completionStats.averageTime * (this.completionStats.totalAttempts - 1) + timeSpent;
-  this.completionStats.averageTime = Math.round(totalTime / this.completionStats.totalAttempts);
+  const totalTime = stats.averageTime * (stats.totalAttempts - 1) + timeSpent;
+  stats.averageTime = Math.round(totalTime / stats.totalAttempts);
   
   // Update average score
   if (score !== null && score !== undefined) {
-    const totalScore = this.completionStats.averageScore * (this.completionStats.totalAttempts - 1) + score;
-    this.completionStats.averageScore = Math.round(totalScore / this.completionStats.totalAttempts);
+    const totalScore = stats.averageScore * (stats.totalAttempts - 1) + score;
+    stats.averageScore = Math.round(totalScore / stats.totalAttempts);
   }
   
-  return this.save();
+  this.completionStats = stats;
+  return await this.save();
 };
 
 // Static method to get recommended lessons for user
-lessonSchema.statics.getRecommendedLessons = async function(userId, limit = 5) {
-  const Progress = mongoose.model('Progress');
+Lesson.getRecommendedLessons = async function(userId, limit = 5) {
+  const Progress = require('./Progress');
   
   // Get user's completed lessons and topics
-  const userProgress = await Progress.find({
-    userId,
-    activityType: 'lesson'
-  }).sort({ completedAt: -1 });
+  const userProgress = await Progress.findAll({
+    where: {
+      userId,
+      activityType: 'lesson'
+    },
+    order: [['completedAt', 'DESC']],
+    raw: true
+  });
   
   const completedLessonIds = userProgress
-    .filter(p => p.score >= 70)
+    .filter(p => p.score >= 70 && p.metadata && p.metadata.lessonId)
     .map(p => p.metadata.lessonId);
   
   const topicScores = {};
@@ -247,12 +269,18 @@ lessonSchema.statics.getRecommendedLessons = async function(userId, limit = 5) {
   });
   
   // Find lessons user hasn't completed
-  const recommendedLessons = await this.find({
-    _id: { $nin: completedLessonIds },
+  const where = {
     isActive: true
-  })
-  .populate('prerequisites')
-  .limit(limit * 2); // Get more to filter
+  };
+  
+  if (completedLessonIds.length > 0) {
+    where.id = { [Op.notIn]: completedLessonIds };
+  }
+  
+  const recommendedLessons = await this.findAll({
+    where,
+    limit: limit * 2 // Get more to filter
+  });
   
   // Filter by accessible lessons and sort by relevance
   const accessible = [];
@@ -288,4 +316,4 @@ lessonSchema.statics.getRecommendedLessons = async function(userId, limit = 5) {
     .map(item => item.lesson);
 };
 
-module.exports = mongoose.model('Lesson', lessonSchema);
+module.exports = Lesson;

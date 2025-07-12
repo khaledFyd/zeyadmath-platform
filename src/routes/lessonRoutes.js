@@ -23,7 +23,7 @@ const getLessonsValidation = [
 
 const lessonIdValidation = [
   param('id')
-    .isMongoId()
+    .isInt()
     .withMessage('Invalid lesson ID')
 ];
 
@@ -36,7 +36,7 @@ const topicValidation = [
 
 const completeLessonValidation = [
   param('id')
-    .isMongoId()
+    .isInt()
     .withMessage('Invalid lesson ID'),
   body('timeSpent')
     .optional()

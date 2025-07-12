@@ -85,7 +85,7 @@ const getLeaderboardValidation = [
 
 const awardBonusXPValidation = [
   body('userId')
-    .isMongoId()
+    .isInt()
     .withMessage('Invalid user ID'),
   body('amount')
     .isInt({ min: 1 })

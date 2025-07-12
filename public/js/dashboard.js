@@ -172,7 +172,7 @@ async function loadLessons() {
     ];
     
     // Check completion status from localStorage if user is logged in
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (token) {
         try {
             const response = await API.progress.getUserStats();

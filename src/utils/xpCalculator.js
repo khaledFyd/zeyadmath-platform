@@ -219,7 +219,7 @@ const calculateTopicMastery = (topicProgress) => {
   let weightedScore = 0;
   
   topicProgress.forEach(activity => {
-    const weight = weights[activity._id] || 0.25;
+    const weight = weights[activity.id || activity.activityType] || 0.25;
     totalWeight += weight;
     weightedScore += (activity.avgScore || 0) * weight;
   });

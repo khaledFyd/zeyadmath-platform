@@ -1,7 +1,6 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const { User, Lesson, Progress } = require('../src/models');
-const connectDB = require('../src/config/database');
+const { User, Lesson, Progress, sequelize } = require('../src/models');
+const { connectDB } = require('../src/config/database');
 
 // Sample lessons data - Only the 3 available templates
 const sampleLessons = [
@@ -50,66 +49,66 @@ async function seedDatabase() {
         
         // Clear existing data
         console.log('🗑️  Clearing existing data...');
-        await User.deleteMany({});
-        await Lesson.deleteMany({});
-        await Progress.deleteMany({});
+        await User.destroy({ where: {} });
+        await Lesson.destroy({ where: {} });
+        await Progress.destroy({ where: {} });
         
         // Create sample lessons
         console.log('📚 Creating lessons...');
-        const lessons = await Lesson.insertMany(sampleLessons);
+        const lessons = await Lesson.bulkCreate(sampleLessons);
         console.log(`✅ Created ${lessons.length} lessons`);
         
         // Set prerequisites
         console.log('🔗 Setting prerequisites...');
         
         // Algebra prerequisites
-        const algebraBasics = await Lesson.findOne({ title: "Introduction to Variables" });
-        const donutAlgebra = await Lesson.findOne({ title: "Donut Algebra - Combining Like Terms" });
-        const algebraBalance = await Lesson.findOne({ title: "Algebra Balance - Solving Equations" });
-        const advancedAlgebra = await Lesson.findOne({ title: "Advanced Equation Solving" });
+        const algebraBasics = await Lesson.findOne({ where: { title: "Introduction to Variables" } });
+        const donutAlgebra = await Lesson.findOne({ where: { title: "🍩 Donut Algebra - Combining Like Terms" } });
+        const algebraBalance = await Lesson.findOne({ where: { title: "⚖️ Algebra Balance - Solving Equations" } });
+        const advancedAlgebra = await Lesson.findOne({ where: { title: "Advanced Equation Solving" } });
         
         if (donutAlgebra && algebraBasics) {
-            donutAlgebra.prerequisites = [algebraBasics._id];
+            donutAlgebra.prerequisites = [algebraBasics.id];
             await donutAlgebra.save();
         }
         
         if (algebraBalance && donutAlgebra) {
-            algebraBalance.prerequisites = [donutAlgebra._id];
+            algebraBalance.prerequisites = [donutAlgebra.id];
             await algebraBalance.save();
         }
         
         if (advancedAlgebra && algebraBalance) {
-            advancedAlgebra.prerequisites = [algebraBalance._id];
+            advancedAlgebra.prerequisites = [algebraBalance.id];
             await advancedAlgebra.save();
         }
         
         // Multiplication prerequisites
-        const multiBasics = await Lesson.findOne({ title: "Multiplication Basics" });
-        const times1to5 = await Lesson.findOne({ title: "Times Tables 1-5" });
-        const times6to10 = await Lesson.findOne({ title: "Times Tables 6-10" });
+        const multiBasics = await Lesson.findOne({ where: { title: "Multiplication Basics" } });
+        const times1to5 = await Lesson.findOne({ where: { title: "Times Tables 1-5" } });
+        const times6to10 = await Lesson.findOne({ where: { title: "Times Tables 6-10" } });
         
         if (times1to5 && multiBasics) {
-            times1to5.prerequisites = [multiBasics._id];
+            times1to5.prerequisites = [multiBasics.id];
             await times1to5.save();
         }
         
         if (times6to10 && times1to5) {
-            times6to10.prerequisites = [times1to5._id];
+            times6to10.prerequisites = [times1to5.id];
             await times6to10.save();
         }
         
         // Fractions prerequisites
-        const fracBasics = await Lesson.findOne({ title: "Introduction to Fractions" });
-        const fracAdd = await Lesson.findOne({ title: "Adding Fractions" });
-        const fracMulti = await Lesson.findOne({ title: "Multiplying Fractions" });
+        const fracBasics = await Lesson.findOne({ where: { title: "Introduction to Fractions" } });
+        const fracAdd = await Lesson.findOne({ where: { title: "Adding Fractions" } });
+        const fracMulti = await Lesson.findOne({ where: { title: "Multiplying Fractions" } });
         
         if (fracAdd && fracBasics) {
-            fracAdd.prerequisites = [fracBasics._id];
+            fracAdd.prerequisites = [fracBasics.id];
             await fracAdd.save();
         }
         
         if (fracMulti && fracBasics) {
-            fracMulti.prerequisites = [fracBasics._id];
+            fracMulti.prerequisites = [fracBasics.id];
             await fracMulti.save();
         }
         
@@ -117,13 +116,11 @@ async function seedDatabase() {
         
         // Create sample user
         console.log('👤 Creating sample user...');
-        const sampleUser = new User({
+        const sampleUser = await User.create({
             username: 'demo_student',
             email: 'demo@zeyadmath.com',
             password: 'demo123'
         });
-        
-        await sampleUser.save();
         console.log('✅ Sample user created:');
         console.log('   Email: demo@zeyadmath.com');
         console.log('   Password: demo123');
@@ -134,7 +131,7 @@ async function seedDatabase() {
         console.error('❌ Error seeding database:', error);
     } finally {
         // Close database connection
-        await mongoose.connection.close();
+        await sequelize.close();
         process.exit(0);
     }
 }

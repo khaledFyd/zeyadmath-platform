@@ -337,7 +337,7 @@
             color: #4a5568;
         }
         
-        .restart-btn {
+        .restart-btn, .worksheet-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -348,9 +348,14 @@
             cursor: pointer;
             margin-top: 20px;
             transition: all 0.3s ease;
+            margin: 10px;
         }
         
-        .restart-btn:hover {
+        .worksheet-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+        }
+        
+        .restart-btn:hover, .worksheet-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
@@ -418,6 +423,7 @@
     <div class="access-denied" id="accessDenied">
         <h2>🔒 Access Denied</h2>
         <p>You need at least 100 XP to play this game!</p>
+        <p style="font-size: 16px; color: #666;">Complete lessons to earn XP!</p>
         <div class="xp-progress">
             <div class="xp-bar" id="xpProgressBar">
                 <span id="xpProgressText">0/100 XP</span>
@@ -449,6 +455,12 @@
                 <div class="stat-row">
                     <span class="stat-label">💰 Coins:</span>
                     <span class="stat-value" id="gold">0</span>
+                </div>
+                <div class="stat-row" style="font-size: 12px; color: #666;">
+                    <span>From worksheets</span>
+                </div>
+                <div class="stat-row" style="font-size: 11px; color: #999;">
+                    <span id="coinInfo">1 coin per 5 XP</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">❤️ Lives:</span>
@@ -547,6 +559,14 @@
                 
                 userXP = data.userXP;
                 availableCoins = data.availableCoins;
+                console.log(`Coins from worksheets: ${availableCoins}`);
+                if (data.worksheetsCompleted !== undefined) {
+                    console.log(`Worksheets completed: ${data.worksheetsCompleted}`);
+                }
+                if (data.totalWorksheetXP !== undefined) {
+                    console.log(`Total XP from worksheets: ${data.totalWorksheetXP}`);
+                    console.log(`Coin formula: ${data.coinsFormula}`);
+                }
                 return true;
             } catch (error) {
                 console.error('Error checking access:', error);
@@ -571,6 +591,14 @@
             // Initialize game with XP-based coins
             gameState.gold = availableCoins;
             document.getElementById('gold').textContent = gameState.gold;
+            
+            // Update coin info display
+            if (document.getElementById('coinInfo')) {
+                const totalXP = data.totalWorksheetXP || 0;
+                const worksheets = data.worksheetsCompleted || 0;
+                document.getElementById('coinInfo').textContent = 
+                    `${worksheets} worksheets = ${totalXP} XP`;
+            }
             
             // Start the game
             startGame();

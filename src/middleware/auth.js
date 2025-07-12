@@ -17,7 +17,7 @@ const auth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Find user by id from token
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findByPk(decoded.id);
     
     if (!user) {
       return res.status(401).json({ 
@@ -28,7 +28,7 @@ const auth = async (req, res, next) => {
 
     // Attach user to request
     req.user = user;
-    req.userId = user._id;
+    req.userId = user.id;
     
     next();
   } catch (error) {
@@ -60,11 +60,11 @@ const optionalAuth = async (req, res, next) => {
     
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select('-password');
+      const user = await User.findByPk(decoded.id);
       
       if (user) {
         req.user = user;
-        req.userId = user._id;
+        req.userId = user.id;
       }
     }
     

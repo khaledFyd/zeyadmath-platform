@@ -26,13 +26,26 @@ const registerValidation = [
 
 const loginValidation = [
   body('email')
+    .optional()
     .trim()
     .isEmail()
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
+  body('username')
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage('Password is required'),
+  body()
+    .custom((value, { req }) => {
+      if (!req.body.email && !req.body.username) {
+        throw new Error('Email or username is required');
+      }
+      return true;
+    })
 ];
 
 const updateProfileValidation = [

@@ -9,53 +9,63 @@ This guide outlines how to create a math learning platform similar to the existi
 
 #### User Model Enhancement
 ```javascript
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  xp: { type: Number, default: 0 },
-  level: { type: Number, default: 1 },
-  achievements: [{
-    name: String,
-    description: String,
-    earnedAt: Date,
-    xpAwarded: Number
-  }],
-  createdAt: { type: Date, default: Date.now }
+// PostgreSQL with Sequelize
+const User = sequelize.define('User', {
+  username: { type: DataTypes.STRING, allowNull: false, unique: true },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  password: { type: DataTypes.STRING, allowNull: false },
+  xp: { type: DataTypes.INTEGER, defaultValue: 0 },
+  level: { type: DataTypes.INTEGER, defaultValue: 1 },
+  achievements: { type: DataTypes.JSON, defaultValue: [] },
+  streakCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  lastActivityDate: DataTypes.DATE
 });
 ```
 
 #### Progress Model Enhancement
 ```javascript
-const progressSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  activityType: { 
-    type: String, 
-    enum: ['practice', 'lesson', 'revision', 'example'],
-    required: true 
+// PostgreSQL with Sequelize
+const Progress = sequelize.define('Progress', {
+  userId: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false,
+    references: { model: 'Users', key: 'id' }
   },
-  topic: { type: String, required: true },
-  subtopic: String,
-  score: Number,
-  totalQuestions: Number,
-  correctAnswers: Number,
-  timeSpent: Number, // in seconds
-  xpEarned: { type: Number, default: 0 },
-  completedAt: { type: Date, default: Date.now },
-  metadata: mongoose.Schema.Types.Mixed // For storing activity-specific data
+  activityType: { 
+    type: DataTypes.ENUM('practice', 'lesson', 'revision', 'example'),
+    allowNull: false 
+  },
+  topic: { type: DataTypes.STRING, allowNull: false },
+  subtopic: DataTypes.STRING,
+  score: DataTypes.INTEGER,
+  totalQuestions: DataTypes.INTEGER,
+  correctAnswers: DataTypes.INTEGER,
+  timeSpent: DataTypes.INTEGER, // in seconds
+  xpEarned: { type: DataTypes.INTEGER, defaultValue: 0 },
+  completedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+  metadata: { type: DataTypes.JSON, defaultValue: {} },
+  answers: { type: DataTypes.JSON, defaultValue: [] }
 });
 ```
 
 #### Lesson Model
 ```javascript
-const lessonSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  topic: { type: String, required: true },
-  difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
-  content: { type: String, required: true }, // HTML content from templates
-  xpReward: { type: Number, default: 10 },
-  prerequisites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
-  order: Number
+// PostgreSQL with Sequelize
+const Lesson = sequelize.define('Lesson', {
+  title: { type: DataTypes.STRING, allowNull: false },
+  topic: { type: DataTypes.STRING, allowNull: false },
+  difficulty: { 
+    type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+    defaultValue: 'beginner'
+  },
+  content: DataTypes.TEXT, // HTML content from templates
+  templatePath: DataTypes.STRING,
+  xpReward: { type: DataTypes.INTEGER, defaultValue: 10 },
+  prerequisites: { type: DataTypes.JSON, defaultValue: [] }, // Array of lesson IDs
+  order: { type: DataTypes.INTEGER, defaultValue: 0 },
+  tags: { type: DataTypes.JSON, defaultValue: [] },
+  resources: { type: DataTypes.JSON, defaultValue: [] },
+  isActive: { type: DataTypes.BOOLEAN, defaultValue: true }
 });
 ```
 

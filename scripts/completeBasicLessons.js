@@ -1,7 +1,6 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const { User, Lesson, Progress } = require('../src/models');
-const connectDB = require('../src/config/database');
+const { User, Lesson, Progress, sequelize } = require('../src/models');
+const { connectDB } = require('../src/config/database');
 
 async function completeBasicLessons() {
   try {
@@ -9,7 +8,7 @@ async function completeBasicLessons() {
     console.log('Connected to database');
     
     // Find demo user
-    const user = await User.findOne({ email: 'demo@zeyadmath.com' });
+    const user = await User.findOne({ where: { email: 'demo@zeyadmath.com' } });
     if (!user) {
       console.error('Demo user not found!');
       process.exit(1);
@@ -18,9 +17,11 @@ async function completeBasicLessons() {
     console.log('Found user:', user.username);
     
     // Find basic lessons (no prerequisites)
-    const basicLessons = await Lesson.find({ 
-      prerequisites: { $size: 0 },
-      isActive: true 
+    const basicLessons = await Lesson.findAll({ 
+      where: { 
+        prerequisites: [],
+        isActive: true 
+      }
     });
     
     console.log(`Found ${basicLessons.length} basic lessons`);
@@ -31,19 +32,22 @@ async function completeBasicLessons() {
       
       // Check if already completed
       const existing = await Progress.findOne({
-        userId: user._id,
-        activityType: 'lesson',
-        'metadata.lessonId': lesson._id
+        where: {
+          userId: user.id,
+          activityType: 'lesson'
+        }
       });
       
-      if (existing) {
+      // Check if this lesson was already completed
+      if (existing && existing.metadata && existing.metadata.lessonId === lesson.id) {
+      
         console.log('  - Already completed');
         continue;
       }
       
       // Create progress record
-      const progress = new Progress({
-        userId: user._id,
+      const progress = await Progress.create({
+        userId: user.id,
         activityType: 'lesson',
         topic: lesson.topic,
         subtopic: lesson.subtopic,
@@ -54,12 +58,10 @@ async function completeBasicLessons() {
         xpEarned: lesson.xpReward,
         difficulty: lesson.difficulty,
         metadata: {
-          lessonId: lesson._id,
+          lessonId: lesson.id,
           lessonTitle: lesson.title
         }
       });
-      
-      await progress.save();
       
       // Update user XP
       user.xp += lesson.xpReward;
@@ -73,18 +75,25 @@ async function completeBasicLessons() {
     console.log(`\nUser now has ${user.xp} XP and is level ${user.level}`);
     
     // Show which lessons are now accessible
-    const allLessons = await Lesson.find({ isActive: true }).populate('prerequisites');
+    const allLessons = await Lesson.findAll({ 
+      where: { isActive: true },
+      include: [{
+        model: Lesson,
+        as: 'prerequisiteLessons',
+        through: { attributes: [] }
+      }]
+    });
     console.log('\nAccessible lessons:');
     
     for (const lesson of allLessons) {
-      const canAccess = await lesson.canUserAccess(user._id);
+      const canAccess = await lesson.canUserAccess(user.id);
       console.log(`- ${lesson.title}: ${canAccess ? '✅ Accessible' : '🔒 Locked'}`);
     }
     
   } catch (error) {
     console.error('Error:', error);
   } finally {
-    await mongoose.connection.close();
+    await sequelize.close();
     process.exit(0);
   }
 }

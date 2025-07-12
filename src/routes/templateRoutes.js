@@ -10,7 +10,7 @@ router.get('/:lessonId', auth, async (req, res) => {
     const { lessonId } = req.params;
     
     // Find the lesson
-    const lesson = await Lesson.findById(lessonId);
+    const lesson = await Lesson.findByPk(lessonId);
     if (!lesson) {
       return res.status(404).send('Lesson not found');
     }
@@ -29,7 +29,7 @@ router.get('/:lessonId', auth, async (req, res) => {
     // Inject XP tracking and serve the template
     const wrappedHtml = await injectXPTracking(
       lesson.templatePath,
-      lesson._id.toString(),
+      lesson.id.toString(),
       lesson.xpReward
     );
     

@@ -1,5 +1,6 @@
 const { User } = require('../models');
 const { validationResult } = require('express-validator');
+const { Op } = require('sequelize');
 
 // Register new user
 const register = async (req, res) => {
@@ -15,28 +16,30 @@ const register = async (req, res) => {
 
     const { username, email, password } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
-    });
-
-    if (existingUser) {
+    // Check if user already exists by email
+    const existingUserByEmail = await User.findOne({ where: { email } });
+    if (existingUserByEmail) {
       return res.status(400).json({ 
         success: false, 
-        error: existingUser.email === email 
-          ? 'Email already registered' 
-          : 'Username already taken' 
+        error: 'Email already registered'
+      });
+    }
+
+    // Check if username already exists
+    const existingUserByUsername = await User.findOne({ where: { username } });
+    if (existingUserByUsername) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Username already taken'
       });
     }
 
     // Create new user
-    const user = new User({
+    const user = await User.create({
       username,
       email,
       password
     });
-
-    await user.save();
 
     // Generate token
     const token = user.generateAuthToken();
@@ -46,7 +49,7 @@ const register = async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         xp: user.xp,
@@ -75,10 +78,24 @@ const login = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    // Find user by email or username - accept either one
+    const loginIdentifier = email || username;
+    if (!loginIdentifier) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email or username is required' 
+      });
+    }
+
+    // Check if loginIdentifier is an email or username
+    const isEmail = loginIdentifier.includes('@');
+    
+    // Find user by email or username with password
+    const user = await User.scope('withPassword').findOne({ 
+      where: isEmail ? { email: loginIdentifier } : { username: loginIdentifier }
+    });
 
     if (!user) {
       return res.status(401).json({ 
@@ -109,7 +126,7 @@ const login = async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         xp: user.xp,
@@ -130,7 +147,7 @@ const login = async (req, res) => {
 // Get current user profile
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const user = await User.findByPk(req.userId);
 
     if (!user) {
       return res.status(404).json({ 
@@ -142,7 +159,7 @@ const getProfile = async (req, res) => {
     res.json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         xp: user.xp,
@@ -182,38 +199,46 @@ const updateProfile = async (req, res) => {
     if (email) updates.email = email;
 
     // Check if username/email already taken
-    if (username || email) {
+    if (username) {
       const existingUser = await User.findOne({
-        $and: [
-          { _id: { $ne: req.userId } },
-          { $or: [
-            username ? { username } : {},
-            email ? { email } : {}
-          ]}
-        ]
+        where: { 
+          username,
+          id: { [Op.ne]: req.userId }
+        }
       });
-
+      
       if (existingUser) {
         return res.status(400).json({ 
           success: false, 
-          error: existingUser.username === username 
-            ? 'Username already taken' 
-            : 'Email already in use' 
+          error: 'Username already taken'
+        });
+      }
+    }
+    
+    if (email) {
+      const existingUser = await User.findOne({
+        where: { 
+          email,
+          id: { [Op.ne]: req.userId }
+        }
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Email already in use'
         });
       }
     }
 
     // Update user
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      updates,
-      { new: true, runValidators: true }
-    ).select('-password');
+    const user = await User.findByPk(req.userId);
+    await user.update(updates);
 
     res.json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         xp: user.xp,
@@ -244,7 +269,7 @@ const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     // Get user with password
-    const user = await User.findById(req.userId).select('+password');
+    const user = await User.scope('withPassword').findByPk(req.userId);
 
     // Verify current password
     const isPasswordValid = await user.comparePassword(currentPassword);

@@ -28,11 +28,15 @@ npm run seed             # Seed database with sample data
 ## Environment Setup
 
 1. Copy `.env.example` to `.env` and configure:
-   - `MONGODB_URI`: Your MongoDB connection string
+   - `DB_USERNAME`: PostgreSQL username
+   - `DB_PASSWORD`: PostgreSQL password
+   - `DB_NAME`: Database name (e.g., zeyadmath_dev)
+   - `DB_HOST`: Database host (default localhost)
+   - `DB_PORT`: Database port (default 5432)
    - `JWT_SECRET`: A secure random string for JWT signing
    - `PORT`: Server port (default 3000)
 
-2. Ensure MongoDB is running locally or use a cloud instance
+2. Ensure PostgreSQL is running locally or use Render's PostgreSQL service
 
 ## Architecture
 
@@ -41,9 +45,9 @@ npm run seed             # Seed database with sample data
 - **Mascot Assets**: Character images in `Mascot/`
 - **Specification Document**: Detailed implementation plan in `create_web.md`
 
-### Planned Architecture (from create_web.md)
+### Current Architecture
 - **Backend**: Node.js with Express.js
-- **Database**: MongoDB with Mongoose ODM
+- **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: JWT-based authentication
 - **Frontend**: Server-rendered HTML with vanilla JavaScript
 - **Gamification**: XP system with levels and achievements
@@ -75,7 +79,7 @@ When developing new features:
 2. **Follow the existing HTML template structure** - Keep templates self-contained until backend integration
 3. **Implement XP tracking** - All activities should award XP based on performance
 4. **Ensure mobile compatibility** - Test on various screen sizes
-5. **Use the planned database schemas** from create_web.md when implementing backend
+5. **Use the PostgreSQL/Sequelize models** when implementing backend features
 
 ## Security Considerations
 - Server-side validation for all XP calculations

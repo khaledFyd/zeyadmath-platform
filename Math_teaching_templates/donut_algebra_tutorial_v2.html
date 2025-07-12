@@ -1750,8 +1750,12 @@
         }
 
         function addXP(amount) {
+            console.log(`[DONUT ALGEBRA] addXP called with amount: ${amount}`);
+            console.log(`[DONUT ALGEBRA] Current local XP before: ${currentXP}`);
+            
             currentXP += amount;
             document.getElementById('xp-value').textContent = currentXP;
+            console.log(`[DONUT ALGEBRA] Current local XP after: ${currentXP}`);
             
             // Add pulse animation
             const xpDisplay = document.getElementById('xp-display');
@@ -1759,6 +1763,16 @@
             setTimeout(() => {
                 xpDisplay.classList.remove('pulse');
             }, 600);
+            
+            // Send XP to the global lesson integration system if available
+            if (window.LessonXP && window.LessonXP.earnXP) {
+                console.log(`[DONUT ALGEBRA] Sending ${amount} XP to LessonXP.earnXP`);
+                window.LessonXP.earnXP(amount);
+            } else {
+                console.warn('[DONUT ALGEBRA] window.LessonXP not available!');
+                console.log('[DONUT ALGEBRA] window.LessonXP:', window.LessonXP);
+                console.log('[DONUT ALGEBRA] window.addXP:', window.addXP);
+            }
             
             // Check for achievements
             if (currentXP >= 100 && currentXP - amount < 100) {

@@ -99,10 +99,15 @@ router.post('/:lessonId/complete', auth, async (req, res) => {
     }
     
     // Check if already completed
+    const { Op } = require('sequelize');
     const existingProgress = await Progress.findOne({
-      userId: req.userId,
-      activityType: 'lesson',
-      'metadata.lessonId': lessonId
+      where: {
+        userId: req.userId,
+        activityType: 'lesson',
+        metadata: {
+          [Op.contains]: { lessonId: lessonId }
+        }
+      }
     });
     
     if (existingProgress && existingProgress.score >= 70) {
@@ -141,7 +146,7 @@ router.post('/:lessonId/complete', auth, async (req, res) => {
     await progress.save();
     
     // Update user XP
-    const user = await User.findById(req.userId);
+    const user = await User.findByPk(req.userId);
     user.xp += xpEarned;
     user.level = user.calculateLevel();
     user.updateStreak();

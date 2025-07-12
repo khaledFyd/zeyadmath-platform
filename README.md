@@ -16,10 +16,10 @@ An interactive mathematics learning platform designed to teach math concepts thr
 ## Tech Stack
 
 - **Backend**: Node.js with Express.js
-- **Database**: MongoDB with Mongoose ODM
+- **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: JWT-based authentication
 - **Frontend**: Server-rendered HTML with vanilla JavaScript
-- **Deployment**: Render.com (Node.js) + MongoDB Atlas (Database)
+- **Deployment**: Render.com (Node.js + PostgreSQL database)
 - **Charts**: Chart.js for data visualization
 
 ## Getting Started
@@ -28,14 +28,14 @@ An interactive mathematics learning platform designed to teach math concepts thr
 
 - Node.js (v14 or higher)
 - npm or yarn
-- MongoDB (local instance or Atlas account)
+- PostgreSQL (v12 or higher)
 
 ### Local Development Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/zeyadmath-platform.git
-   cd zeyadmath-platform
+   git clone https://github.com/yourusername/Zeyadmath_siteV2_5.git
+   cd Zeyadmath_siteV2_5
    ```
 
 2. **Install dependencies**
@@ -43,20 +43,29 @@ An interactive mathematics learning platform designed to teach math concepts thr
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Create PostgreSQL database**
+   ```bash
+   createdb zeyadmath_dev
+   ```
+
+4. **Set up environment variables**
    ```bash
    cp .env.example .env
    ```
    
    Edit `.env` and add your configuration:
    ```
-   MONGODB_URI=mongodb://localhost:27017/zeyadmath
+   DB_USERNAME=your_postgres_username
+   DB_PASSWORD=your_postgres_password
+   DB_NAME=zeyadmath_dev
+   DB_HOST=localhost
+   DB_PORT=5432
    JWT_SECRET=your-secret-key-here
    PORT=3000
    NODE_ENV=development
    ```
 
-4. **Seed the database (optional)**
+5. **Seed the database (optional)**
    ```bash
    npm run seed
    ```
@@ -65,40 +74,39 @@ An interactive mathematics learning platform designed to teach math concepts thr
    - Email: `demo@zeyadmath.com`
    - Password: `demo123`
 
-5. **Start the development server**
+6. **Start the development server**
    ```bash
    npm run dev
    ```
 
    Visit `http://localhost:3000` to see the app running.
 
-## MongoDB Atlas Setup
+## PostgreSQL Setup
 
-1. **Create an Atlas Account**
-   - Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-   - Sign up for a free account
+### Local PostgreSQL (macOS)
+```bash
+# Install PostgreSQL
+brew install postgresql@15
 
-2. **Create a Cluster**
-   - Click "Build a Cluster"
-   - Choose the free tier (M0)
-   - Select your preferred region
+# Start PostgreSQL service
+brew services start postgresql@15
 
-3. **Configure Database Access**
-   - Go to "Database Access" in the sidebar
-   - Add a new database user with username and password
-   - Note these credentials for later
+# Create database
+createdb zeyadmath_dev
+```
 
-4. **Configure Network Access**
-   - Go to "Network Access" in the sidebar
-   - Click "Add IP Address"
-   - For development: Add your current IP
-   - For production: Add `0.0.0.0/0` (allows access from anywhere)
+### Local PostgreSQL (Ubuntu/Debian)
+```bash
+# Install PostgreSQL
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
 
-5. **Get Connection String**
-   - Go to "Clusters" and click "Connect"
-   - Choose "Connect your application"
-   - Copy the connection string
-   - Replace `<password>` with your database user password
+# Create database
+sudo -u postgres createdb zeyadmath_dev
+```
+
+### Production Database (Render PostgreSQL)
+When deploying to Render, you can create a PostgreSQL database directly in the Render dashboard. Render will provide a `DATABASE_URL` environment variable automatically.
 
 ## Deployment on Render.com
 
@@ -120,16 +128,21 @@ An interactive mathematics learning platform designed to teach math concepts thr
      - **Start Command**: `npm start`
      - **Plan**: Free tier is fine to start
 
-4. **Add Environment Variables**
-   - In Render dashboard, go to "Environment"
+4. **Create PostgreSQL Database on Render**
+   - In Render dashboard, click "New +" and select "PostgreSQL"
+   - Create a database with your preferred name
+   - Note the internal database URL
+
+5. **Add Environment Variables**
+   - In your Web Service settings, go to "Environment"
    - Add the following variables:
      ```
-     MONGODB_URI=your-mongodb-atlas-connection-string
+     DATABASE_URL=your-render-postgresql-internal-url
      JWT_SECRET=your-production-secret-key
      NODE_ENV=production
      ```
 
-5. **Deploy**
+6. **Deploy**
    - Render will automatically deploy when you push to your main branch
    - Monitor the deploy logs for any issues
 
@@ -142,7 +155,7 @@ zeyadmath-platform/
 │   ├── config/         # Database and app configuration
 │   ├── controllers/    # Route controllers
 │   ├── middleware/     # Express middleware
-│   ├── models/         # Mongoose models
+│   ├── models/         # Sequelize models
 │   ├── routes/         # API routes
 │   └── games/          # Game files
 ├── Math_teaching_templates/  # Educational HTML templates
@@ -207,4 +220,4 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 
 ## Support
 
-For questions or support, please open an issue in the GitHub repository.# zeyadmath-platform
+For questions or support, please open an issue in the GitHub repository.

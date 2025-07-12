@@ -124,3 +124,17 @@ Desktop.ini
 # Temporary files
 tmp/
 temp/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+database.sqlite
+
+# Sequelize
+.sequelizerc
+
+# Test files
+public/debug-*.html
+public/test-*.html
+public/test-login.html

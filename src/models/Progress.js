@@ -1,111 +1,131 @@
-const mongoose = require('mongoose');
+const { DataTypes, Op } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const progressSchema = new mongoose.Schema({
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true,
-    index: true
+const Progress = sequelize.define('Progress', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  activityType: { 
-    type: String, 
-    enum: ['practice', 'lesson', 'revision', 'example'],
-    required: [true, 'Activity type is required']
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   },
-  topic: { 
-    type: String, 
-    required: [true, 'Topic is required'],
-    trim: true,
-    index: true
+  activityType: {
+    type: DataTypes.ENUM('practice', 'lesson', 'revision', 'example'),
+    allowNull: false
+  },
+  topic: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   subtopic: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING
   },
   score: {
-    type: Number,
-    min: [0, 'Score cannot be negative'],
-    max: [100, 'Score cannot exceed 100']
+    type: DataTypes.INTEGER,
+    validate: {
+      min: 0,
+      max: 100
+    }
   },
   totalQuestions: {
-    type: Number,
-    min: [0, 'Total questions cannot be negative']
+    type: DataTypes.INTEGER,
+    validate: {
+      min: 0
+    }
   },
   correctAnswers: {
-    type: Number,
-    min: [0, 'Correct answers cannot be negative']
+    type: DataTypes.INTEGER,
+    validate: {
+      min: 0
+    }
   },
   timeSpent: {
-    type: Number, // in seconds
-    min: [0, 'Time spent cannot be negative']
+    type: DataTypes.INTEGER, // in seconds
+    validate: {
+      min: 0
+    }
   },
-  xpEarned: { 
-    type: Number, 
-    default: 0,
-    min: [0, 'XP earned cannot be negative']
+  xpEarned: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
   },
   difficulty: {
-    type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    default: 'beginner'
+    type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+    defaultValue: 'beginner'
   },
-  completedAt: { 
-    type: Date, 
-    default: Date.now,
-    index: true
+  completedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
   metadata: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {}
+    type: DataTypes.JSON,
+    defaultValue: {}
   },
-  // Track individual answers for detailed analysis
-  answers: [{
-    question: String,
-    userAnswer: mongoose.Schema.Types.Mixed,
-    correctAnswer: mongoose.Schema.Types.Mixed,
-    isCorrect: Boolean,
-    timeSpent: Number, // seconds per question
-    hint: Boolean // whether hint was used
-  }]
+  answers: {
+    type: DataTypes.JSON,
+    defaultValue: []
+  }
+}, {
+  timestamps: true,
+  indexes: [
+    {
+      fields: ['userId', 'activityType', 'completedAt']
+    },
+    {
+      fields: ['userId', 'topic', 'completedAt']
+    },
+    {
+      fields: ['userId', 'completedAt']
+    },
+    {
+      fields: ['topic']
+    },
+    {
+      fields: ['completedAt']
+    }
+  ]
 });
 
-// Compound indexes for efficient queries
-progressSchema.index({ userId: 1, activityType: 1, completedAt: -1 });
-progressSchema.index({ userId: 1, topic: 1, completedAt: -1 });
-progressSchema.index({ userId: 1, completedAt: -1 });
-
-// Calculate score if not provided
-progressSchema.pre('save', function(next) {
-  if (this.totalQuestions && this.correctAnswers !== undefined && !this.score) {
-    this.score = Math.round((this.correctAnswers / this.totalQuestions) * 100);
+// Calculate score before saving if not provided
+Progress.beforeSave((progress) => {
+  if (progress.totalQuestions && progress.correctAnswers !== undefined && !progress.score) {
+    progress.score = Math.round((progress.correctAnswers / progress.totalQuestions) * 100);
   }
-  next();
 });
 
 // Static method to get user statistics
-progressSchema.statics.getUserStats = async function(userId, dateRange = {}) {
+Progress.getUserStats = async function(userId, dateRange = {}) {
   try {
-    const query = { userId: mongoose.Types.ObjectId(userId) };
+    const where = { userId };
     
     if (dateRange.start || dateRange.end) {
-      query.completedAt = {};
-      if (dateRange.start) query.completedAt.$gte = dateRange.start;
-      if (dateRange.end) query.completedAt.$lte = dateRange.end;
+      where.completedAt = {};
+      if (dateRange.start) where.completedAt[Op.gte] = dateRange.start;
+      if (dateRange.end) where.completedAt[Op.lte] = dateRange.end;
     }
     
-    const stats = await this.aggregate([
-      { $match: query },
-      {
-        $group: {
-          _id: '$activityType',
-          count: { $sum: 1 },
-          totalXP: { $sum: '$xpEarned' },
-          avgScore: { $avg: '$score' },
-          totalTimeSpent: { $sum: '$timeSpent' },
-          topics: { $addToSet: '$topic' }
-        }
-      }
-    ]);
+    const stats = await this.findAll({
+      where,
+      attributes: [
+        'activityType',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('SUM', sequelize.col('xpEarned')), 'totalXP'],
+        [sequelize.fn('AVG', sequelize.col('score')), 'avgScore'],
+        [sequelize.fn('SUM', sequelize.col('timeSpent')), 'totalTimeSpent'],
+        [sequelize.fn('array_agg', sequelize.fn('DISTINCT', sequelize.col('topic'))), 'topics']
+      ],
+      group: ['activityType'],
+      raw: true
+    });
     
     return stats;
   } catch (error) {
@@ -115,27 +135,22 @@ progressSchema.statics.getUserStats = async function(userId, dateRange = {}) {
 };
 
 // Static method to get topic progress
-progressSchema.statics.getTopicProgress = async function(userId, topic) {
+Progress.getTopicProgress = async function(userId, topic) {
   try {
-    const progress = await this.aggregate([
-      { 
-        $match: { 
-          userId: mongoose.Types.ObjectId(userId), 
-          topic: topic 
-        } 
-      },
-    {
-      $group: {
-        _id: '$activityType',
-        attempts: { $sum: 1 },
-        avgScore: { $avg: '$score' },
-        totalXP: { $sum: '$xpEarned' },
-        lastAttempt: { $max: '$completedAt' }
-      }
-    }
-  ]);
-  
-  return progress;
+    const progress = await this.findAll({
+      where: { userId, topic },
+      attributes: [
+        'activityType',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'attempts'],
+        [sequelize.fn('AVG', sequelize.col('score')), 'avgScore'],
+        [sequelize.fn('SUM', sequelize.col('xpEarned')), 'totalXP'],
+        [sequelize.fn('MAX', sequelize.col('completedAt')), 'lastAttempt']
+      ],
+      group: ['activityType'],
+      raw: true
+    });
+    
+    return progress;
   } catch (error) {
     console.error('Error in getTopicProgress:', error);
     return [];
@@ -143,7 +158,7 @@ progressSchema.statics.getTopicProgress = async function(userId, topic) {
 };
 
 // Instance method to calculate mastery level
-progressSchema.methods.getMasteryLevel = function() {
+Progress.prototype.getMasteryLevel = function() {
   if (this.score >= 95) return 'mastered';
   if (this.score >= 80) return 'proficient';
   if (this.score >= 60) return 'developing';
@@ -151,61 +166,50 @@ progressSchema.methods.getMasteryLevel = function() {
 };
 
 // Static method for leaderboard
-progressSchema.statics.getLeaderboard = async function(period = 'all', limit = 10) {
-  const dateFilter = {};
+Progress.getLeaderboard = async function(period = 'all', limit = 10) {
+  const where = {};
   const now = new Date();
   
   switch (period) {
     case 'daily':
-      dateFilter.completedAt = {
-        $gte: new Date(now.setHours(0, 0, 0, 0))
+      where.completedAt = {
+        [Op.gte]: new Date(now.setHours(0, 0, 0, 0))
       };
       break;
     case 'weekly':
       const weekAgo = new Date(now);
       weekAgo.setDate(weekAgo.getDate() - 7);
-      dateFilter.completedAt = { $gte: weekAgo };
+      where.completedAt = { [Op.gte]: weekAgo };
       break;
     case 'monthly':
       const monthAgo = new Date(now);
       monthAgo.setMonth(monthAgo.getMonth() - 1);
-      dateFilter.completedAt = { $gte: monthAgo };
+      where.completedAt = { [Op.gte]: monthAgo };
       break;
   }
   
-  const leaderboard = await this.aggregate([
-    { $match: dateFilter },
-    {
-      $group: {
-        _id: '$userId',
-        totalXP: { $sum: '$xpEarned' },
-        activitiesCompleted: { $sum: 1 },
-        avgScore: { $avg: '$score' }
-      }
-    },
-    { $sort: { totalXP: -1 } },
-    { $limit: limit },
-    {
-      $lookup: {
-        from: 'users',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'user'
-      }
-    },
-    { $unwind: '$user' },
-    {
-      $project: {
-        username: '$user.username',
-        level: '$user.level',
-        totalXP: 1,
-        activitiesCompleted: 1,
-        avgScore: 1
-      }
-    }
-  ]);
+  const User = require('./User');
+  
+  const leaderboard = await this.findAll({
+    where,
+    attributes: [
+      'userId',
+      [sequelize.fn('SUM', sequelize.col('xpEarned')), 'totalXP'],
+      [sequelize.fn('COUNT', sequelize.col('Progress.id')), 'activitiesCompleted'],
+      [sequelize.fn('AVG', sequelize.col('score')), 'avgScore']
+    ],
+    include: [{
+      model: User,
+      attributes: ['username', 'level']
+    }],
+    group: ['userId', 'User.id'],
+    order: [[sequelize.fn('SUM', sequelize.col('xpEarned')), 'DESC']],
+    limit,
+    raw: true,
+    nest: true
+  });
   
   return leaderboard;
 };
 
-module.exports = mongoose.model('Progress', progressSchema);
+module.exports = Progress;
