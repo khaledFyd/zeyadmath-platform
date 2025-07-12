@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const User = require('../models/User');
+const { GameSession } = require('../models');
 const { Op } = require('sequelize');
 
 // Middleware to check if user has minimum XP to play games
@@ -36,40 +37,71 @@ const checkMinimumXP = async (req, res, next) => {
 router.get('/tower-defense/access', auth, checkMinimumXP, async (req, res) => {
     try {
         const user = await User.findByPk(req.userId);
-        const { Progress } = require('../models');
         
-        // Calculate coins based on worksheet completions only
-        // Each completed practice/worksheet gives coins based on score
-        const worksheetProgress = await Progress.findAll({
+        // Find or create game session for this user
+        let gameSession = await GameSession.findOne({
             where: {
                 userId: req.userId,
-                activityType: 'practice',
-                score: { [Op.gte]: 70 } // Only count successful completions
-            },
-            attributes: ['score', 'xpEarned']
+                gameType: 'tower-defense'
+            }
         });
         
-        // Calculate total coins from XP earned in worksheets
-        // Players get 1 coin for every 5 XP earned from worksheets
-        const totalWorksheetXP = worksheetProgress.reduce((total, progress) => {
-            return total + (progress.xpEarned || 0);
-        }, 0);
+        let newXPEarned = 0;
+        let lastPlayedAt = null;
+        let isFirstTime = false;
         
-        // Base coins: minimum 100, plus additional coins from worksheets
-        const worksheetCoins = Math.floor(totalWorksheetXP / 5);
-        const availableCoins = Math.max(100, worksheetCoins);
+        if (!gameSession) {
+            // First time playing - create session
+            gameSession = await GameSession.create({
+                userId: req.userId,
+                gameType: 'tower-defense',
+                lastXPSnapshot: user.xp,
+                lastPlayedAt: new Date()
+            });
+            isFirstTime = true;
+            newXPEarned = user.xp; // All XP is "new" for first-time players
+        } else {
+            // Calculate XP earned since last play
+            newXPEarned = Math.max(0, user.xp - gameSession.lastXPSnapshot);
+            lastPlayedAt = gameSession.lastPlayedAt;
+            
+            // DON'T update the snapshot here - only update when coins are actually spent
+            // This allows users to accumulate coins if they exit without spending
+        }
+        
+        // Calculate coins: base 100 + 1 coin per 5 XP earned since last play
+        const coinsFromNewXP = Math.floor(newXPEarned / 5);
+        const availableCoins = 100 + coinsFromNewXP;
+        
+        // Calculate time since last play
+        let timeSinceLastPlay = null;
+        if (lastPlayedAt) {
+            const hoursSinceLastPlay = Math.floor((Date.now() - new Date(lastPlayedAt).getTime()) / (1000 * 60 * 60));
+            if (hoursSinceLastPlay < 1) {
+                timeSinceLastPlay = 'Less than an hour ago';
+            } else if (hoursSinceLastPlay < 24) {
+                timeSinceLastPlay = `${hoursSinceLastPlay} hours ago`;
+            } else {
+                const days = Math.floor(hoursSinceLastPlay / 24);
+                timeSinceLastPlay = `${days} day${days > 1 ? 's' : ''} ago`;
+            }
+        }
         
         res.json({
             access: true,
             userXP: user.xp,
             userLevel: user.level,
             availableCoins: availableCoins,
-            worksheetsCompleted: worksheetProgress.length,
-            totalWorksheetXP: totalWorksheetXP,
-            worksheetCoins: worksheetCoins,
             baseCoins: 100,
-            coinsFormula: 'Base 100 coins + 1 coin per 5 XP from worksheets',
-            message: 'Access granted to tower defense game'
+            coinsFromNewXP: coinsFromNewXP,
+            newXPEarned: newXPEarned,
+            isFirstTime: isFirstTime,
+            lastPlayedAt: lastPlayedAt,
+            timeSinceLastPlay: timeSinceLastPlay,
+            coinsFormula: 'Base 100 coins + 1 coin per 5 XP earned since last play',
+            message: isFirstTime 
+                ? 'Welcome to Tower Defense! You get 100 base coins plus coins for all your XP!' 
+                : `Welcome back! You earned ${newXPEarned} XP since last play, giving you ${coinsFromNewXP} extra coins!`
         });
     } catch (error) {
         console.error('Error getting game access:', error);
@@ -89,6 +121,40 @@ router.get('/tower-defense', auth, checkMinimumXP, (req, res) => {
     });
 });
 
+// Update XP snapshot only when game is lost
+router.post('/tower-defense/game-lost', auth, async (req, res) => {
+    try {
+        const user = await User.findByPk(req.userId);
+        
+        // Find the game session
+        const gameSession = await GameSession.findOne({
+            where: {
+                userId: req.userId,
+                gameType: 'tower-defense'
+            }
+        });
+        
+        if (gameSession) {
+            // Update the XP snapshot to current XP only when game is lost
+            await gameSession.update({
+                lastXPSnapshot: user.xp,
+                lastPlayedAt: new Date()
+            });
+            
+            console.log(`Game lost - Updated XP snapshot for user ${req.userId} to ${user.xp} XP`);
+        }
+        
+        res.json({
+            success: true,
+            message: 'XP snapshot updated after game loss',
+            currentXP: user.xp
+        });
+    } catch (error) {
+        console.error('Error updating XP snapshot:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Record game session (NO XP REWARDS - only tracking for stats)
 router.post('/tower-defense/session', auth, async (req, res) => {
     try {
@@ -97,11 +163,28 @@ router.post('/tower-defense/session', auth, async (req, res) => {
             enemiesDefeated, 
             timeSpent, 
             finalScore,
+            gameLost = false,
             difficulty = 'intermediate' 
         } = req.body;
 
-        // Just acknowledge the game session without awarding XP
-        // Games don't give XP or coins - only worksheets do
+        // Update XP snapshot ONLY if the game was lost
+        if (gameLost) {
+            const user = await User.findByPk(req.userId);
+            const gameSession = await GameSession.findOne({
+                where: {
+                    userId: req.userId,
+                    gameType: 'tower-defense'
+                }
+            });
+            
+            if (gameSession) {
+                await gameSession.update({
+                    lastXPSnapshot: user.xp,
+                    lastPlayedAt: new Date()
+                });
+                console.log(`Game lost - Updated XP snapshot for user ${req.userId} to ${user.xp} XP`);
+            }
+        }
         
         res.json({
             success: true,

@@ -444,10 +444,10 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         
         <div class="ui-panel">
-            <div class="xp-coins-info">
+            <div class="xp-coins-info" id="coinSystemInfo">
                 <h4>Coin System</h4>
-                <p>Base Coins: 100 (Everyone starts with this!)</p>
-                <p>Bonus: +1 coin per 5 XP from worksheets</p>
+                <p id="baseCoinsText">Base Coins: 100 (Everyone starts with this!)</p>
+                <p id="bonusCoinsText">Loading coin bonus...</p>
                 <p>No coins from enemies - earn more by completing lessons!</p>
             </div>
             
@@ -563,14 +563,22 @@
                 availableCoins = data.availableCoins;
                 gameAccessData = data; // Store for later use
                 console.log(`Total coins available: ${availableCoins}`);
-                if (data.worksheetsCompleted !== undefined) {
-                    console.log(`Worksheets completed: ${data.worksheetsCompleted}`);
+                
+                // Update coin system display
+                const bonusCoinsText = document.getElementById('bonusCoinsText');
+                if (bonusCoinsText) {
+                    if (data.isFirstTime) {
+                        bonusCoinsText.textContent = `First time bonus: +${data.coinsFromNewXP} coins from your ${data.newXPEarned} total XP!`;
+                    } else if (data.newXPEarned > 0) {
+                        bonusCoinsText.textContent = `Welcome back! +${data.coinsFromNewXP} coins from ${data.newXPEarned} XP earned since ${data.timeSinceLastPlay || 'last play'}`;
+                    } else {
+                        bonusCoinsText.textContent = `No new XP since last play. Complete more lessons for bonus coins!`;
+                    }
                 }
-                if (data.totalWorksheetXP !== undefined) {
-                    console.log(`Total XP from worksheets: ${data.totalWorksheetXP}`);
-                    console.log(`Coin formula: ${data.coinsFormula}`);
-                    console.log(`Base coins: ${data.baseCoins || 100}, Worksheet bonus: ${Math.max(0, (data.worksheetCoins || 0) - (data.baseCoins || 100))}`);
-                }
+                
+                console.log(`New XP earned since last play: ${data.newXPEarned}`);
+                console.log(`Coins from new XP: ${data.coinsFromNewXP}`);
+                console.log(`Message: ${data.message}`);
                 return true;
             } catch (error) {
                 console.error('Error checking access:', error);
@@ -593,23 +601,33 @@
             document.getElementById('gameContainer').classList.add('active');
             
             // Initialize game with XP-based coins
-            console.log('Initializing game with coins:', availableCoins);
-            gameState.gold = availableCoins;
-            document.getElementById('gold').textContent = gameState.gold;
-            console.log('Game state gold set to:', gameState.gold);
+            console.log('=== COIN INITIALIZATION ===');
+            console.log('availableCoins variable:', availableCoins);
+            console.log('gameAccessData:', gameAccessData);
+            console.log('Setting gameState.gold to:', availableCoins);
+            gameState.gold = availableCoins || 100; // Fallback to 100 if undefined
+            gameState.initialGold = gameState.gold; // Track starting amount
+            console.log('gameState.gold after setting:', gameState.gold);
+            
+            const goldElement = document.getElementById('gold');
+            console.log('Gold element found:', goldElement);
+            if (goldElement) {
+                goldElement.textContent = gameState.gold;
+                console.log('Gold element text set to:', goldElement.textContent);
+            }
+            console.log('=== END COIN INITIALIZATION ===');
             
             // Update coin info display
             if (document.getElementById('coinInfo')) {
                 const baseCoins = gameAccessData.baseCoins || 100;
-                const worksheetCoins = gameAccessData.worksheetCoins || 0;
-                const worksheets = gameAccessData.worksheetsCompleted || 0;
+                const coinsFromNewXP = gameAccessData.coinsFromNewXP || 0;
                 
-                if (worksheetCoins > baseCoins) {
+                if (coinsFromNewXP > 0) {
                     document.getElementById('coinInfo').textContent = 
-                        `Base: 100 + Bonus: ${worksheetCoins - baseCoins} (from ${worksheets} worksheets)`;
+                        `Base: 100 + Bonus: ${coinsFromNewXP} = ${availableCoins} total`;
                 } else {
                     document.getElementById('coinInfo').textContent = 
-                        `Using base coins (Complete worksheets for bonus coins!)`;
+                        `Using base coins only (Earn XP for bonus coins!)`;
                 }
             }
             
@@ -631,6 +649,7 @@
         // Game state
         let gameState = {
             gold: 0, // Will be set from user's XP
+            initialGold: 0, // Track starting coins
             lives: 20,
             score: 0,
             wave: 1,
@@ -1363,6 +1382,7 @@
                         enemiesDefeated: gameState.enemiesDefeated,
                         timeSpent: timeSpent,
                         finalScore: score,
+                        gameLost: true, // Game was lost
                         difficulty: 'intermediate'
                     })
                 });
@@ -1592,7 +1612,8 @@
         // Upgrade buttons
         document.getElementById('upgradeDamage').addEventListener('click', () => {
             if (gameState.selectedTower && gameState.gold >= gameState.selectedTower.damageUpgradeCost) {
-                gameState.gold -= gameState.selectedTower.damageUpgradeCost;
+                const cost = gameState.selectedTower.damageUpgradeCost;
+                gameState.gold -= cost;
                 gameState.selectedTower.upgradeDamage();
                 selectTower(gameState.selectedTower); // Refresh UI
                 createParticle(gameState.selectedTower.x, gameState.selectedTower.y, 
@@ -1602,7 +1623,8 @@
         
         document.getElementById('upgradeRange').addEventListener('click', () => {
             if (gameState.selectedTower && gameState.gold >= gameState.selectedTower.rangeUpgradeCost) {
-                gameState.gold -= gameState.selectedTower.rangeUpgradeCost;
+                const cost = gameState.selectedTower.rangeUpgradeCost;
+                gameState.gold -= cost;
                 gameState.selectedTower.upgradeRange();
                 selectTower(gameState.selectedTower); // Refresh UI
                 createParticle(gameState.selectedTower.x, gameState.selectedTower.y, 
@@ -1612,7 +1634,8 @@
         
         document.getElementById('upgradeSpeed').addEventListener('click', () => {
             if (gameState.selectedTower && gameState.gold >= gameState.selectedTower.speedUpgradeCost) {
-                gameState.gold -= gameState.selectedTower.speedUpgradeCost;
+                const cost = gameState.selectedTower.speedUpgradeCost;
+                gameState.gold -= cost;
                 gameState.selectedTower.upgradeSpeed();
                 selectTower(gameState.selectedTower); // Refresh UI
                 createParticle(gameState.selectedTower.x, gameState.selectedTower.y, 
@@ -1648,6 +1671,9 @@
             
             gameLoop();
         }
+        
+        // No need to update XP snapshot on exit anymore
+        // XP snapshot only updates when the game is lost
         
         // Initialize game on load
         window.addEventListener('load', initGame);

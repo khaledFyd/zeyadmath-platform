@@ -15,6 +15,7 @@ class LessonIntegration {
         this.lessonStartTime = Date.now();
         this.totalXPEarned = 0;
         this.lessonCompleted = false;
+        this.xpTransactions = []; // Track XP additions to prevent duplicates
         
         // Try to restore lesson state from sessionStorage
         this.restoreLessonState();
@@ -667,7 +668,7 @@ class LessonIntegration {
         if (pointsElement) {
             // Show the XP earned in THIS lesson only
             pointsElement.textContent = this.totalXPEarned;
-            console.log('[UPDATE STATS] Lesson XP earned:', this.totalXPEarned);
+            // Logging moved to monitorXPDisplay to prevent spam
         }
         
         // The xp-value element shows the user's TOTAL XP (all-time)
@@ -676,7 +677,7 @@ class LessonIntegration {
         if (xpElement && this.userData) {
             const totalUserXP = this.userData.totalXP || this.userData.xp || 0;
             xpElement.textContent = totalUserXP;
-            console.log('[UPDATE STATS] Total user XP:', totalUserXP);
+            // Logging moved to monitorXPDisplay to prevent spam
         }
     }
     
@@ -773,28 +774,39 @@ class LessonIntegration {
         if (typeof window.addXP === 'function') {
             const originalAddXP = window.addXP;
             window.addXP = (amount) => {
+                // Create a unique identifier for this XP transaction
+                const timestamp = Date.now();
+                const transactionId = `${amount}_${timestamp}`;
+                
+                // Check if we've seen this exact transaction very recently (within 100ms)
+                const recentTransactions = this.xpTransactions.filter(t => 
+                    t.amount === amount && (timestamp - t.timestamp) < 100
+                );
+                
+                if (recentTransactions.length > 0) {
+                    console.warn(`[XP DUPLICATE] Prevented duplicate XP addition of ${amount} (within 100ms)`);
+                    return;
+                }
+                
+                // Add to transaction history
+                this.xpTransactions.push({ amount, timestamp, id: transactionId });
+                
+                // Keep only last 100 transactions to prevent memory issues
+                if (this.xpTransactions.length > 100) {
+                    this.xpTransactions = this.xpTransactions.slice(-100);
+                }
+                
                 console.log(`[LESSON INTEGRATION] Intercepted addXP(${amount})`);
                 console.log(`[LESSON INTEGRATION] Total XP before: ${this.totalXPEarned}`);
-                console.log(`[LESSON INTEGRATION] Current user data:`, this.userData);
-                console.log(`[LESSON INTEGRATION] Current user XP:`, this.userData ? (this.userData.xp || this.userData.totalXP || 0) : 'No user data');
-                
-                // Check JWT token details
-                const token = localStorage.getItem('authToken');
-                if (token) {
-                    try {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        console.log('[LESSON INTEGRATION] JWT payload:', {
-                            userId: payload.userId,
-                            username: payload.username,
-                            email: payload.email
-                        });
-                    } catch (e) {
-                        console.error('[LESSON INTEGRATION] Failed to decode JWT:', e);
-                    }
-                }
                 
                 this.totalXPEarned += amount;
                 console.log(`[LESSON INTEGRATION] Total XP after: ${this.totalXPEarned}`);
+                
+                // Warn if total XP is getting unusually high
+                if (this.totalXPEarned > 10000) {
+                    console.error(`[XP ERROR] Total lesson XP is unusually high: ${this.totalXPEarned}`);
+                    console.error(`[XP ERROR] Recent transactions:`, this.xpTransactions.slice(-10));
+                }
                 
                 originalAddXP(amount);
                 
@@ -1187,12 +1199,28 @@ class LessonIntegration {
     }
     
     monitorXPDisplay() {
+        // Store last logged values to prevent spam
+        let lastLoggedLessonXP = -1;
+        let lastLoggedUserXP = -1;
+        
         // Update displays periodically
         const checkInterval = setInterval(() => {
             // Update lesson XP display
             const pointsElement = document.getElementById('pointsEarned');
             if (pointsElement) {
                 pointsElement.textContent = this.totalXPEarned;
+                
+                // Only log if value changed
+                if (this.totalXPEarned !== lastLoggedLessonXP) {
+                    console.log('[UPDATE STATS] Lesson XP earned:', this.totalXPEarned);
+                    lastLoggedLessonXP = this.totalXPEarned;
+                    
+                    // Warn if XP seems too high
+                    if (this.totalXPEarned > 10000) {
+                        console.warn('[XP WARNING] Lesson XP seems unusually high:', this.totalXPEarned);
+                        console.warn('[XP WARNING] This might indicate XP is being added multiple times');
+                    }
+                }
             }
             
             // Update total user XP display
@@ -1200,9 +1228,15 @@ class LessonIntegration {
             if (xpElement && this.userData) {
                 const totalUserXP = this.userData.totalXP || this.userData.xp || 0;
                 xpElement.textContent = totalUserXP;
+                
+                // Only log if value changed
+                if (totalUserXP !== lastLoggedUserXP) {
+                    console.log('[UPDATE STATS] Total user XP:', totalUserXP);
+                    lastLoggedUserXP = totalUserXP;
+                }
             }
             
-            // Update completion stats
+            // Update completion stats (without logging)
             this.updateCompletionStats();
         }, 1000); // Check every second
         
@@ -1383,6 +1417,26 @@ window.clearCorruptedState = function() {
         console.log(`Removed: ${key}`);
     });
     console.log('Session storage cleared. Please refresh the page.');
+};
+
+// Function to reset lesson XP (useful when restarting a lesson)
+window.resetLessonXP = function() {
+    if (window.lessonIntegration) {
+        console.log('[XP RESET] Resetting lesson XP from', window.lessonIntegration.totalXPEarned, 'to 0');
+        window.lessonIntegration.totalXPEarned = 0;
+        window.lessonIntegration.xpTransactions = [];
+        window.lessonIntegration.pendingXP = 0;
+        window.lessonIntegration.lessonStartTime = Date.now();
+        window.lessonIntegration.saveLessonState();
+        
+        // Update displays
+        const pointsElement = document.getElementById('pointsEarned');
+        if (pointsElement) {
+            pointsElement.textContent = '0';
+        }
+        
+        console.log('[XP RESET] Lesson XP reset complete');
+    }
 };
 
 // Add diagnostic function
