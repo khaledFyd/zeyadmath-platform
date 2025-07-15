@@ -562,7 +562,6 @@
                 userXP = data.userXP;
                 availableCoins = data.availableCoins;
                 gameAccessData = data; // Store for later use
-                console.log(`Total coins available: ${availableCoins}`);
                 
                 // Update coin system display
                 const bonusCoinsText = document.getElementById('bonusCoinsText');
@@ -576,12 +575,8 @@
                     }
                 }
                 
-                console.log(`New XP earned since last play: ${data.newXPEarned}`);
-                console.log(`Coins from new XP: ${data.coinsFromNewXP}`);
-                console.log(`Message: ${data.message}`);
                 return true;
             } catch (error) {
-                console.error('Error checking access:', error);
                 showAccessDenied(0, 100);
                 return false;
             }
@@ -601,21 +596,13 @@
             document.getElementById('gameContainer').classList.add('active');
             
             // Initialize game with XP-based coins
-            console.log('=== COIN INITIALIZATION ===');
-            console.log('availableCoins variable:', availableCoins);
-            console.log('gameAccessData:', gameAccessData);
-            console.log('Setting gameState.gold to:', availableCoins);
             gameState.gold = availableCoins || 100; // Fallback to 100 if undefined
             gameState.initialGold = gameState.gold; // Track starting amount
-            console.log('gameState.gold after setting:', gameState.gold);
             
             const goldElement = document.getElementById('gold');
-            console.log('Gold element found:', goldElement);
             if (goldElement) {
                 goldElement.textContent = gameState.gold;
-                console.log('Gold element text set to:', goldElement.textContent);
             }
-            console.log('=== END COIN INITIALIZATION ===');
             
             // Update coin info display
             if (document.getElementById('coinInfo')) {
@@ -782,7 +769,6 @@
                 if (this.currentWaypoint >= PATH.length - 1) {
                     // Enemy reached the end
                     gameState.lives--;
-                    console.log(`Enemy reached end! Lives remaining: ${gameState.lives}`);
                     return false;
                 }
                 
@@ -1290,10 +1276,8 @@
                     gameState.enemies.push(new Enemy(waveEnemies[spawnIndex]));
                     gameState.enemiesSpawned++; // Track spawned enemies!
                     spawnIndex++;
-                    console.log(`Spawned enemy ${gameState.enemiesSpawned}/${gameState.enemiesInWave}`);
                 } else {
                     clearInterval(spawnInterval);
-                    console.log('All enemies spawned for this wave');
                 }
             }, 800);
             
@@ -1309,11 +1293,9 @@
         
         function checkWaveComplete() {
             // Debug logging
-            console.log(`CheckWaveComplete - Active: ${gameState.isWaveActive}, Enemies: ${gameState.enemies.length}, Spawned: ${gameState.enemiesSpawned}/${gameState.enemiesInWave}`);
             
             if (gameState.isWaveActive && gameState.enemies.length === 0 && 
                 gameState.enemiesSpawned >= gameState.enemiesInWave) {
-                console.log('WAVE COMPLETE! All enemies defeated.');
                 gameState.isWaveActive = false;
                 gameState.wave++;
                 
@@ -1329,10 +1311,7 @@
                     btn.style.visibility = 'visible'; // Extra visibility assurance
                     btn.textContent = gameState.wave % 5 === 0 ? 'Start Boss Wave!' : 'Start Wave ' + gameState.wave;
                     btn.classList.remove('boss-wave');
-                    console.log('Wave button re-enabled for wave', gameState.wave);
-                    console.log('Button state - disabled:', btn.disabled, 'display:', btn.style.display);
                 } else {
-                    console.error('Start wave button not found!');
                 }
             }
         }
@@ -1395,7 +1374,6 @@
                 document.getElementById('xpEarned').textContent = data.xpEarned || 0;
                 document.getElementById('gameOverModal').style.display = 'flex';
             } catch (error) {
-                console.error('Error recording game session:', error);
                 // Still show game over screen
                 document.getElementById('finalWave').textContent = wavesCompleted;
                 document.getElementById('finalScore').textContent = gameState.score;
@@ -1406,7 +1384,6 @@
         
         function gameLoop() {
             if (gameState.gameOver) {
-                console.log('Game loop stopped - game is over');
                 return;
             }
             
@@ -1434,7 +1411,6 @@
                     return true;
                 }
                 // Enemy reached the end - trigger immediate game over
-                console.log('Enemy reached the end - GAME OVER!');
                 if (!gameState.gameOver) {
                     gameOver();
                 }
@@ -1666,7 +1642,6 @@
                 btn.disabled = false;
                 btn.style.display = 'block';
                 btn.textContent = 'Start Wave 1';
-                console.log('Game started - wave button enabled');
             }
             
             gameLoop();

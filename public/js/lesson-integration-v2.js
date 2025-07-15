@@ -39,9 +39,7 @@ class LessonIntegration {
         // Update navigation with auth status
         this.updateNavigationAuth();
         
-        console.log('[INIT] Auth status after check:', this.isAuthenticated);
-        console.log('[INIT] User data:', this.userData);
-        console.log('[INIT] User XP:', this.userData ? (this.userData.xp || this.userData.totalXP || 0) : 'No user data');
+        // Auth status checked
         
         // Add completion section at bottom
         this.addCompletionSection();
@@ -65,11 +63,9 @@ class LessonIntegration {
     
     async checkAuth() {
         const token = localStorage.getItem('authToken');
-        console.log('Checking auth - token exists:', !!token);
         
         if (!token) {
             this.isAuthenticated = false;
-            console.log('No auth token found');
             return;
         }
         
@@ -80,11 +76,9 @@ class LessonIntegration {
                 }
             });
             
-            console.log('Auth response status:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Auth response data:', data);
                 
                 // Handle the nested data structure from the API
                 if (data.data && data.data.user) {
@@ -95,28 +89,20 @@ class LessonIntegration {
                     this.userData = data.data || data;
                 }
                 
-                console.log('[AUTH CHECK] Raw API response:', data);
-                console.log('[AUTH CHECK] Extracted userData:', this.userData);
                 
                 // Ensure totalXP exists in userData
                 if (this.userData && !this.userData.totalXP && this.userData.xp !== undefined) {
                     this.userData.totalXP = this.userData.xp;
-                    console.log('[AUTH CHECK] Set totalXP from xp field:', this.userData.totalXP);
                 }
                 
                 this.isAuthenticated = true;
-                console.log('User authenticated successfully!');
-                console.log('User data:', this.userData);
-                console.log('Auth status:', this.isAuthenticated);
                 
                 // Recover any pending XP from localStorage
                 this.recoverPendingXP();
             } else {
-                console.log('Auth check failed - response not ok:', response.status);
                 this.isAuthenticated = false;
             }
         } catch (error) {
-            console.error('Auth check failed:', error);
             this.isAuthenticated = false;
         }
     }
@@ -129,7 +115,6 @@ class LessonIntegration {
             const pending = JSON.parse(pendingXP);
             if (pending.length === 0) return;
             
-            console.log('Recovering pending XP:', pending);
             
             // Process each pending XP entry
             for (const entry of pending) {
@@ -156,9 +141,7 @@ class LessonIntegration {
             
             // Clear pending XP after successful recovery
             localStorage.removeItem('pendingXP');
-            console.log('Successfully recovered all pending XP');
         } catch (error) {
-            console.error('Failed to recover pending XP:', error);
         }
     }
     
@@ -581,11 +564,9 @@ class LessonIntegration {
     }
     
     updateNavigationAuth() {
-        console.log('Updating navigation auth - isAuthenticated:', this.isAuthenticated, 'userData:', this.userData);
         
         const navAuthSection = document.getElementById('nav-auth-section');
         if (!navAuthSection) {
-            console.error('Navigation auth section not found');
             return;
         }
         
@@ -597,7 +578,6 @@ class LessonIntegration {
                     <span class="level-badge">Lvl ${this.userData.level || 1}</span>
                 </div>
             `;
-            console.log(`[NAV UPDATE] Set XP badge to: ${userXP} XP`);
         } else {
             navAuthSection.innerHTML = `
                 <a href="/auth.html" class="login-prompt">Login</a>
@@ -688,13 +668,9 @@ class LessonIntegration {
         if (savedState) {
             try {
                 const state = JSON.parse(savedState);
-                console.log('[Lesson State] Found saved state:', state);
                 
                 // Check for corrupted values and clear if found
                 if (state.currentXP > 500 || state.totalXPEarned > 500) {
-                    console.error('[Lesson State] CORRUPTED STATE DETECTED!');
-                    console.error('[Lesson State] currentXP:', state.currentXP, 'totalXPEarned:', state.totalXPEarned);
-                    console.error('[Lesson State] Clearing all lesson state data...');
                     
                     // Clear all lesson-related sessionStorage
                     const keysToRemove = [];
@@ -705,7 +681,6 @@ class LessonIntegration {
                         }
                     }
                     keysToRemove.forEach(key => {
-                        console.log('[Lesson State] Removing key:', key);
                         sessionStorage.removeItem(key);
                     });
                     
@@ -723,15 +698,12 @@ class LessonIntegration {
                         const xpElement = document.getElementById('xp-value');
                         if (xpElement && state.currentXP && state.currentXP <= 500) {
                             xpElement.textContent = state.currentXP;
-                            console.log(`[Lesson State] Restored XP display to: ${state.currentXP}`);
                         } else if (xpElement) {
                             // Reset display if corrupted
                             xpElement.textContent = '0';
-                            console.log('[Lesson State] Reset XP display to 0 due to invalid saved value');
                         }
                     }, 100);
                 } else {
-                    console.log('[Lesson State] Invalid or missing XP values, starting fresh');
                     this.totalXPEarned = 0;
                 }
                 
@@ -740,7 +712,6 @@ class LessonIntegration {
                     this.lessonStartTime = state.lessonStartTime;
                 }
             } catch (error) {
-                console.error('[Lesson State] Failed to restore state:', error);
                 // Clear corrupted state on error
                 sessionStorage.removeItem(stateKey);
                 this.totalXPEarned = 0;
@@ -761,14 +732,10 @@ class LessonIntegration {
         
         const stateKey = `lessonState_${this.config.lessonId}`;
         sessionStorage.setItem(stateKey, JSON.stringify(state));
-        console.log('[Lesson State] Saved state:', state);
     }
 
     interceptXPFunctions() {
-        console.log('[LESSON INTEGRATION] Intercepting XP functions');
-        console.log('[LESSON INTEGRATION] window.addXP exists:', typeof window.addXP === 'function');
-        console.log('[LESSON INTEGRATION] Current auth status:', this.isAuthenticated);
-        console.log('[LESSON INTEGRATION] Current userData:', this.userData);
+        // Intercepting XP functions
         
         // Store original addXP function if it exists
         if (typeof window.addXP === 'function') {
@@ -784,7 +751,6 @@ class LessonIntegration {
                 );
                 
                 if (recentTransactions.length > 0) {
-                    console.warn(`[XP DUPLICATE] Prevented duplicate XP addition of ${amount} (within 100ms)`);
                     return;
                 }
                 
@@ -796,16 +762,11 @@ class LessonIntegration {
                     this.xpTransactions = this.xpTransactions.slice(-100);
                 }
                 
-                console.log(`[LESSON INTEGRATION] Intercepted addXP(${amount})`);
-                console.log(`[LESSON INTEGRATION] Total XP before: ${this.totalXPEarned}`);
                 
                 this.totalXPEarned += amount;
-                console.log(`[LESSON INTEGRATION] Total XP after: ${this.totalXPEarned}`);
                 
                 // Warn if total XP is getting unusually high
                 if (this.totalXPEarned > 10000) {
-                    console.error(`[XP ERROR] Total lesson XP is unusually high: ${this.totalXPEarned}`);
-                    console.error(`[XP ERROR] Recent transactions:`, this.xpTransactions.slice(-10));
                 }
                 
                 originalAddXP(amount);
@@ -815,11 +776,8 @@ class LessonIntegration {
                 
                 // Save XP incrementally if user is authenticated
                 if (this.isAuthenticated) {
-                    console.log(`[LESSON INTEGRATION] User authenticated, saving XP to server`);
-                    console.log(`[LESSON INTEGRATION] Calling saveIncrementalXP with amount:`, amount);
                     this.saveIncrementalXP(amount);
                 } else {
-                    console.log(`[LESSON INTEGRATION] User NOT authenticated, XP not saved to server`);
                 }
                 
                 // Pulse the completion button when XP is earned
@@ -829,41 +787,30 @@ class LessonIntegration {
                     setTimeout(() => btn.classList.remove('pulse'), 2000);
                 }
             };
-            console.log('[LESSON INTEGRATION] XP interception setup complete');
         } else {
-            console.warn('[LESSON INTEGRATION] window.addXP not found!');
         }
     }
     
     async saveIncrementalXP(xpAmount) {
-        console.log(`[XP Save] Attempting to save ${xpAmount} XP`);
-        console.log(`[XP Save] Is authenticated: ${this.isAuthenticated}`);
-        console.log(`[XP Save] Current userData:`, this.userData);
         
         // Check authentication first
         if (!this.isAuthenticated) {
-            console.error('[XP Save] User not authenticated! Skipping XP save.');
             return;
         }
         
         // Double-check auth token
         const token = localStorage.getItem('authToken');
         if (!token) {
-            console.error('[XP Save] No auth token found! Cannot save XP.');
             this.isAuthenticated = false;
             return;
         }
         
-        // Decode and log JWT info
+        // Decode JWT info (logging removed)
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log('[XP Save] JWT payload:', {
-                userId: payload.userId,
-                username: payload.username,
-                email: payload.email
-            });
+            // JWT payload available if needed
         } catch (e) {
-            console.error('[XP Save] Failed to decode JWT:', e);
+            // JWT decode error
         }
         
         try {
@@ -873,22 +820,16 @@ class LessonIntegration {
             }
             
             // Accumulate XP to save
-            console.log(`[XP Save] Current pending XP: ${this.pendingXP || 0}`);
             this.pendingXP = (this.pendingXP || 0) + xpAmount;
-            console.log(`[XP Save] Accumulated pending XP: ${this.pendingXP}`);
             
-            console.log('[XP Save] Setting 2-second timer for batched save...');
             this.xpSaveTimeout = setTimeout(async () => {
                 const xpToSave = this.pendingXP;
                 this.pendingXP = 0;
                 
-                console.log(`[XP Save Timer] Timer fired - Sending ${xpToSave} XP to server`);
-                console.log(`[XP Save Timer] Reset pendingXP to 0`);
                 
                 // Re-verify auth token at save time
                 const currentToken = localStorage.getItem('authToken');
                 if (!currentToken) {
-                    console.error('[XP Save Timer] Auth token missing at save time!');
                     return;
                 }
                 
@@ -908,9 +849,6 @@ class LessonIntegration {
                     }
                 };
                 
-                console.log('[XP Save] Sending POST request to /api/progress/activity');
-                console.log('[XP Save] Request body:', JSON.stringify(requestBody, null, 2));
-                console.log('[XP Save] Auth header:', `Bearer ${currentToken.substring(0, 20)}...`);
                 
                 // Save as a practice activity with minimal score
                 const response = await fetch('/api/progress/activity', {
@@ -922,40 +860,30 @@ class LessonIntegration {
                     body: JSON.stringify(requestBody)
                 });
                 
-                console.log(`[XP Save] Response status: ${response.status}`);
-                console.log(`[XP Save] Response status text: ${response.statusText}`);
                 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log(`[XP Save] Success! Full server response:`, JSON.stringify(result, null, 2));
                     
                     // Check all possible response structures for totalXP
                     let newTotalXP = null;
                     if (result.data?.totalXP !== undefined) {
                         newTotalXP = result.data.totalXP;
-                        console.log('[XP Save] Found totalXP in result.data.totalXP');
                     } else if (result.data?.user?.xp !== undefined) {
                         newTotalXP = result.data.user.xp;
-                        console.log('[XP Save] Found totalXP in result.data.user.xp');
                     } else if (result.totalXP !== undefined) {
                         newTotalXP = result.totalXP;
-                        console.log('[XP Save] Found totalXP in result.totalXP');
                     } else if (result.xp !== undefined) {
                         newTotalXP = result.xp;
-                        console.log('[XP Save] Found totalXP in result.xp');
                     }
                     
-                    console.log(`[XP Save] Extracted new total XP: ${newTotalXP}`);
                     
                     if (newTotalXP !== null && newTotalXP !== undefined) {
                         // Update userData
                         if (this.userData) {
                             const oldXP = this.userData.xp || this.userData.totalXP || 0;
-                            console.log(`[XP Save] Updating userData XP from ${oldXP} to ${newTotalXP}`);
                             this.userData.xp = newTotalXP;
                             this.userData.totalXP = newTotalXP;
                         } else {
-                            console.warn('[XP Save] userData not initialized, creating minimal object');
                             this.userData = { xp: newTotalXP, totalXP: newTotalXP };
                         }
                         
@@ -964,41 +892,30 @@ class LessonIntegration {
                         if (xpBadge) {
                             const oldText = xpBadge.textContent;
                             xpBadge.textContent = `🏆 ${newTotalXP} XP`;
-                            console.log(`[XP Save] Updated XP badge from "${oldText}" to "${xpBadge.textContent}"`);
                             xpBadge.classList.add('pulse');
                             setTimeout(() => xpBadge.classList.remove('pulse'), 500);
                         } else {
-                            console.warn('[XP Save] XP badge element not found in DOM!');
-                            console.log('[XP Save] Searching for nav elements:', document.querySelectorAll('.nav-right, .user-info'));
                         }
                     } else {
-                        console.error('[XP Save] ERROR: Could not extract totalXP from server response!');
-                        console.error('[XP Save] Full response structure:', result);
                     }
                     
                     // Show visual feedback
                     this.showXPSaveNotification(xpToSave);
                 } else {
                     const errorText = await response.text();
-                    console.error(`[XP Save] Request failed! Status: ${response.status} ${response.statusText}`);
-                    console.error(`[XP Save] Error response body:`, errorText);
                     
                     // Try to parse error as JSON for better debugging
                     try {
                         const errorJson = JSON.parse(errorText);
-                        console.error('[XP Save] Parsed error details:', errorJson);
                     } catch (e) {
                         // Not JSON, already logged as text
                     }
                     
                     // Put XP back in pending if save failed
                     this.pendingXP += xpToSave;
-                    console.log(`[XP Save] Restored ${xpToSave} XP to pending (total pending: ${this.pendingXP})`);
                 }
             }, 2000); // Wait 2 seconds before saving to batch multiple XP gains
         } catch (error) {
-            console.error('[XP Save] Exception occurred:', error);
-            console.error('[XP Save] Stack trace:', error.stack);
         }
     }
     
@@ -1186,7 +1103,6 @@ class LessonIntegration {
             }
             
         } catch (error) {
-            console.error('Error completing lesson:', error);
             completeBtn.disabled = false;
             completeBtn.textContent = '✓ Complete Lesson';
             
@@ -1212,13 +1128,10 @@ class LessonIntegration {
                 
                 // Only log if value changed
                 if (this.totalXPEarned !== lastLoggedLessonXP) {
-                    console.log('[UPDATE STATS] Lesson XP earned:', this.totalXPEarned);
                     lastLoggedLessonXP = this.totalXPEarned;
                     
                     // Warn if XP seems too high
                     if (this.totalXPEarned > 10000) {
-                        console.warn('[XP WARNING] Lesson XP seems unusually high:', this.totalXPEarned);
-                        console.warn('[XP WARNING] This might indicate XP is being added multiple times');
                     }
                 }
             }
@@ -1231,7 +1144,6 @@ class LessonIntegration {
                 
                 // Only log if value changed
                 if (totalUserXP !== lastLoggedUserXP) {
-                    console.log('[UPDATE STATS] Total user XP:', totalUserXP);
                     lastLoggedUserXP = totalUserXP;
                 }
             }
@@ -1264,165 +1176,116 @@ if (document.readyState === 'loading') {
         // Expose global LessonXP object for worksheets to use
         window.LessonXP = {
             earnXP: (amount) => {
-                console.log(`[LessonXP.earnXP] Called with amount: ${amount}`);
                 if (window.addXP) {
-                    console.log('[LessonXP.earnXP] Calling window.addXP');
                     window.addXP(amount);
                 } else {
-                    console.error('[LessonXP.earnXP] window.addXP not found!');
                 }
             }
         };
-        console.log('[LESSON INTEGRATION] Global LessonXP object created');
         
         // Add debug functions
         window.debugXP = {
             checkAuth: () => {
                 const li = window.lessonIntegration;
-                console.log('=== XP Debug: Auth Check ===');
-                console.log('isAuthenticated:', li.isAuthenticated);
-                console.log('userData:', li.userData);
-                console.log('authToken exists:', !!localStorage.getItem('authToken'));
                 const token = localStorage.getItem('authToken');
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]));
-                        console.log('JWT payload:', payload);
                     } catch (e) {
-                        console.error('Failed to decode JWT:', e);
                     }
                 }
             },
             
             testXPSave: async (amount = 10) => {
-                console.log(`=== XP Debug: Testing XP Save with ${amount} XP ===`);
                 const li = window.lessonIntegration;
                 if (!li.isAuthenticated) {
-                    console.error('Not authenticated! Cannot save XP.');
                     return;
                 }
-                console.log('Manually triggering saveIncrementalXP...');
                 await li.saveIncrementalXP(amount);
             },
             
             forceXPSave: async () => {
-                console.log('=== XP Debug: Force Save Pending XP ===');
                 const li = window.lessonIntegration;
                 if (li.pendingXP > 0) {
-                    console.log(`Pending XP: ${li.pendingXP}`);
                     clearTimeout(li.xpSaveTimeout);
                     await li.saveIncrementalXP(0); // Will save pending XP
                 } else {
-                    console.log('No pending XP to save');
                 }
             },
             
             getStatus: () => {
                 const li = window.lessonIntegration;
-                console.log('=== XP Debug: Current Status ===');
-                console.log('Total XP earned in lesson:', li.totalXPEarned);
-                console.log('Pending XP to save:', li.pendingXP);
-                console.log('Is authenticated:', li.isAuthenticated);
-                console.log('User data:', li.userData);
             }
         };
         
-        console.log('[LESSON INTEGRATION] Debug functions available: debugXP.checkAuth(), debugXP.testXPSave(amount), debugXP.forceXPSave(), debugXP.getStatus()');
     });
 } else {
     window.lessonIntegration = new LessonIntegration(window.lessonConfig || {});
     // Expose global LessonXP object for worksheets to use
     window.LessonXP = {
         earnXP: (amount) => {
-            console.log(`[LessonXP.earnXP] Called with amount: ${amount}`);
             if (window.addXP) {
-                console.log('[LessonXP.earnXP] Calling window.addXP');
                 window.addXP(amount);
             } else {
-                console.error('[LessonXP.earnXP] window.addXP not found!');
             }
         }
     };
-    console.log('[LESSON INTEGRATION] Global LessonXP object created');
     
     // Add debug functions
     window.debugXP = {
         checkAuth: () => {
             const li = window.lessonIntegration;
-            console.log('=== XP Debug: Auth Check ===');
-            console.log('isAuthenticated:', li.isAuthenticated);
-            console.log('userData:', li.userData);
-            console.log('authToken exists:', !!localStorage.getItem('authToken'));
             const token = localStorage.getItem('authToken');
             if (token) {
                 try {
                     const payload = JSON.parse(atob(token.split('.')[1]));
-                    console.log('JWT payload:', payload);
                 } catch (e) {
-                    console.error('Failed to decode JWT:', e);
                 }
             }
         },
         
         testXPSave: async (amount = 10) => {
-            console.log(`=== XP Debug: Testing XP Save with ${amount} XP ===`);
             const li = window.lessonIntegration;
             if (!li.isAuthenticated) {
-                console.error('Not authenticated! Cannot save XP.');
                 return;
             }
-            console.log('Manually triggering saveIncrementalXP...');
             await li.saveIncrementalXP(amount);
         },
         
         forceXPSave: async () => {
-            console.log('=== XP Debug: Force Save Pending XP ===');
             const li = window.lessonIntegration;
             if (li.pendingXP > 0) {
-                console.log(`Pending XP: ${li.pendingXP}`);
                 clearTimeout(li.xpSaveTimeout);
                 await li.saveIncrementalXP(0); // Will save pending XP
             } else {
-                console.log('No pending XP to save');
             }
         },
         
         getStatus: () => {
             const li = window.lessonIntegration;
-            console.log('=== XP Debug: Current Status ===');
-            console.log('Total XP earned in lesson:', li.totalXPEarned);
-            console.log('Pending XP to save:', li.pendingXP);
-            console.log('Is authenticated:', li.isAuthenticated);
-            console.log('User data:', li.userData);
         }
     };
     
-    console.log('[LESSON INTEGRATION] Debug functions available: debugXP.checkAuth(), debugXP.testXPSave(amount), debugXP.forceXPSave(), debugXP.getStatus()');
 }
 
 // Add utility to clear corrupted session data
 window.clearCorruptedState = function() {
-    console.log('=== CLEARING CORRUPTED SESSION STATE ===');
     const keysToRemove = [];
     for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
         if (key && key.includes('lesson')) {
             const value = sessionStorage.getItem(key);
-            console.log(`Found key: ${key} with value:`, value);
             keysToRemove.push(key);
         }
     }
     keysToRemove.forEach(key => {
         sessionStorage.removeItem(key);
-        console.log(`Removed: ${key}`);
     });
-    console.log('Session storage cleared. Please refresh the page.');
 };
 
 // Function to reset lesson XP (useful when restarting a lesson)
 window.resetLessonXP = function() {
     if (window.lessonIntegration) {
-        console.log('[XP RESET] Resetting lesson XP from', window.lessonIntegration.totalXPEarned, 'to 0');
         window.lessonIntegration.totalXPEarned = 0;
         window.lessonIntegration.xpTransactions = [];
         window.lessonIntegration.pendingXP = 0;
@@ -1435,89 +1298,60 @@ window.resetLessonXP = function() {
             pointsElement.textContent = '0';
         }
         
-        console.log('[XP RESET] Lesson XP reset complete');
     }
 };
 
 // Add diagnostic function
 window.checkXPState = function() {
-    console.log('=== XP DIAGNOSTIC INFO ===');
-    console.log('window.addXP exists:', typeof window.addXP === 'function');
-    console.log('window.LessonXP exists:', typeof window.LessonXP === 'object');
-    console.log('window.lessonIntegration exists:', typeof window.lessonIntegration === 'object');
     
     if (window.lessonIntegration) {
-        console.log('Lesson Integration State:');
-        console.log('- isAuthenticated:', window.lessonIntegration.isAuthenticated);
-        console.log('- totalXPEarned:', window.lessonIntegration.totalXPEarned);
-        console.log('- pendingXP:', window.lessonIntegration.pendingXP);
-        console.log('- userData:', window.lessonIntegration.userData);
     }
     
     // Check for local XP display
     const xpDisplay = document.getElementById('xp-value');
     if (xpDisplay) {
-        console.log('Local XP display value:', xpDisplay.textContent);
     }
     
     // Check for XP badge
     const xpBadge = document.querySelector('.xp-badge');
     if (xpBadge) {
-        console.log('XP Badge text:', xpBadge.textContent);
     }
     
-    console.log('=========================');
 };
 
 // Function to refresh user data
 window.refreshUserData = async function() {
-    console.log('[REFRESH] Refreshing user data...');
     if (window.lessonIntegration) {
         await window.lessonIntegration.checkAuth();
         window.lessonIntegration.updateNavigationAuth();
-        console.log('[REFRESH] User data refreshed:', window.lessonIntegration.userData);
     }
 };
 
 // Function to check current user
 window.checkCurrentUser = function() {
-    console.log('=== CURRENT USER INFO ===');
     const token = localStorage.getItem('authToken');
-    console.log('Auth token exists:', !!token);
     
     if (window.lessonIntegration && window.lessonIntegration.userData) {
         const user = window.lessonIntegration.userData;
-        console.log('Username:', user.username);
-        console.log('User ID:', user.id || user._id || 'Not found');
-        console.log('Current XP:', user.xp || user.totalXP || 0);
-        console.log('Level:', user.level || 1);
     } else {
-        console.log('No user data loaded');
     }
     
     // Decode JWT to see user info
     if (token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log('Token payload:', payload);
-            console.log('Token user ID:', payload.userId || payload.id);
-            console.log('Token issued:', new Date(payload.iat * 1000).toLocaleString());
         } catch (e) {
-            console.log('Could not decode token');
         }
     }
-    console.log('========================');
 };
 
 // Function to reset bad XP state
 window.resetXPDisplay = function() {
-    console.log('[RESET] Resetting XP display...');
     
     // Reset local display
     const xpDisplay = document.getElementById('xp-value');
     if (xpDisplay) {
         xpDisplay.textContent = '0';
-        console.log('[RESET] Reset local XP display to 0');
     }
     
     // Clear session storage for all lessons
@@ -1525,7 +1359,6 @@ window.resetXPDisplay = function() {
     keys.forEach(key => {
         if (key.startsWith('lessonState_')) {
             sessionStorage.removeItem(key);
-            console.log(`[RESET] Cleared session storage: ${key}`);
         }
     });
     
@@ -1533,8 +1366,6 @@ window.resetXPDisplay = function() {
     if (window.lessonIntegration) {
         window.lessonIntegration.totalXPEarned = 0;
         window.lessonIntegration.pendingXP = 0;
-        console.log('[RESET] Reset lesson integration XP counters');
     }
     
-    console.log('[RESET] Complete! Refresh the page to start fresh.');
 };
